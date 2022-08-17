@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+    web:
+        image: "ostashev/xafloadtesting:latest"
+        build:
+            context: .
+            dockerfile: "./Dockerfile"
+            args:
+              DX_NUGET_SOURCE: ${DX_NUGET_SOURCE}
+        ports:
+          - "80:80"
+        environment:
+            - CONNECTION_STRING=DockerMsSqlConnectionString
+            
+    db:
+        image: "mcr.microsoft.com/mssql/server"
+        environment:
+            SA_PASSWORD: "Qwerty1_"
+            ACCEPT_EULA: "Y"
+        ports:
+          - "1433:1433"

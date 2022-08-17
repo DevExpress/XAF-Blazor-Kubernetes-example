@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loadtestingapp
+  template:
+    metadata:
+      labels:
+        app: loadtestingapp
+    spec:
+      containers:
+      - name: loadtestingapp
+        image: ostashev/xafloadtesting:latest
+        env:
+          - name: CONNECTION_STRING
+            value: K8SMsSqlConnectionString
+        resources:
+          requests:
+            cpu: 400m
+            memory: 500Mi
+          limits:
+            cpu: 800m
+            memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-clusterip-srv
+spec:
+  type: ClusterIP
+  selector:
+    app: loadtestingapp
+  ports:
+    - name: loadtestingapp
+      protocol: TCP
+      port: 80
+      targetPort: 80
