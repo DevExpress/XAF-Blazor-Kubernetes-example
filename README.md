@@ -17,7 +17,7 @@ sudo docker docker build -t <your_docker_hub_id>/xafcontainerexample --build-arg
 You can run a container with this image by the following command:
 
 ```
-docker run --publish <your_docker_hub_id>/xafcontainerexample:latest .
+docker run <your_docker_hub_id>/xafcontainerexample:latest .
 ```
 
 Now, your application is accessible by the `http://localhost/` URL. If you see a database version mismatch error in the console, force the db update by the launching another one application instance in the running container. Find the container's id by the `docker ps` command. Then, run the following:

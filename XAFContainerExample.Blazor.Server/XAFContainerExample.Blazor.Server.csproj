@@ -6,6 +6,8 @@
     <FileVersion>1.0.0.0</FileVersion>
     <Configurations>Debug;Release;EasyTest</Configurations>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>6ec30e6d-875c-404a-a282-f7eebed02345</UserSecretsId>
+    <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Model.xafml" />
@@ -18,6 +20,7 @@
   <ItemGroup>
     <PackageReference Include="DevExpress.ExpressApp.Blazor" Version="22.1.4" />
     <PackageReference Include="DevExpress.ExpressApp.CodeAnalysis" Version="22.1.4" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.15.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\XAFContainerExample.Module\XAFContainerExample.Module.csproj" />
