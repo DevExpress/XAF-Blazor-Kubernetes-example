@@ -101,5 +101,7 @@ app-hpa   Deployment/app-depl   13%/50%   1         15        7          54m
 
 ```
 # Description
-## Defining a Docker Image
+## Building a Docker Image
+
+
 
