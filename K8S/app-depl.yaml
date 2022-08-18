@@ -6,15 +6,15 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: loadtestingapp
+      app: xafcontainerexample
   template:
     metadata:
       labels:
-        app: loadtestingapp
+        app: xafcontainerexample
     spec:
       containers:
-      - name: loadtestingapp
-        image: ostashev/xafloadtesting:latest
+      - name: xafcontainerexample
+        image: ostashev/xafcontainerexample:latest
         env:
           - name: CONNECTION_STRING
             value: K8SMsSqlConnectionString
@@ -33,9 +33,9 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: loadtestingapp
+    app: xafcontainerexample
   ports:
-    - name: loadtestingapp
+    - name: xafcontainerexample
       protocol: TCP
       port: 80
       targetPort: 80

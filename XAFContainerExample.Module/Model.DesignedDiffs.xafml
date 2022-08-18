@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" ?>
+<Application Title="XAFContainerExample">
+  <NavigationItems GenerateRelatedViewVariantsGroup="True" RelatedViewVariantsGroupCaption="Views" GenerateRelatedReportsGroup="True" StartupNavigationItem="Employee_ListView"/>
+  <Views>
+  </Views>
+</Application>

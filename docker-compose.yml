@@ -1,7 +1,7 @@
 version: "3.9"
 services:
     web:
-        image: "ostashev/xafloadtesting:latest"
+        image: "ostashev/xafcontainerexample:latest"
         build:
             context: .
             dockerfile: "./Dockerfile"
