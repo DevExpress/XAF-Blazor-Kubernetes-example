@@ -1,5 +1,7 @@
 # XAF-Blazor-Kubernetes-example
-This example shows how to deploy XAF Blazor application to the Kubernetes cluster and to enable horizontal autoscaling. You can find here `Dockerfile` for publishing an app to the Linux container, and *.yaml files, describing deploying app to Kubernetes cluster with MSSQL database engine container, Horizontal Pod Autoscaler and Ingress.
+This example shows how to deploy XAF Blazor application to the Kubernetes cluster and to enable horizontal autoscaling. You can find here `Dockerfile` for publishing an app to the Linux container, and *.yaml files, describing deploying app to Kubernetes cluster with MSSQL database engine container, Horizontal Pod Autoscaler and Ingress. 
+
+This application was tested with locally-running cluster (https://k3s.io/) and [Azure Kubernetes Service](https://azure.microsoft.com/en-us/services/kubernetes-service/). The maximum pod replicas number (20) allowed working for 300 concurrent users.
 
 ## Getting started
 1. Install Docker Engine or Docker Desktop
@@ -114,7 +116,7 @@ kubectl get hpa
 ## Description
 ### Building XAF Blazor application Docker image
 
-This solution contains a `Dockerfile` example based on [microsoft-dotnet](https://hub.docker.com/_/microsoft-dotnet).
+This solution contains a `Dockerfile` example based on the [microsoft-dotnet](https://hub.docker.com/_/microsoft-dotnet) images.
 
 ```
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
@@ -158,6 +160,93 @@ docker build -f Dockerfile.win -t <your_docker_hub_id>/xafcontainerexample --bui
 ```
 ### Running XAF Blazor application in Kubernetes cluster
 
+This section describes all the specifications located in the `K8S` folder. They should be enough to deploy and run XAF Blazor application with load balancing and autoscaling.
+
+1. Database deployment
+
+The database deployment requires a storage. The PersistentVolume subsystem provides an API for users and administrators that abstracts details of how storage is provided from how it is consumed. A PersistentVolumeClaim (PVC) is a request for a storage. Here is a specification for a simple PVC ([local-pvc.yaml](/K8S/local-pvc.yaml)) which is pretty enough for locally-running cluster (e.g. [k3s](https://k3s.io/)):
+
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mssql-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+```
+
+The [mssql-app-depl.yaml](/K8S/mssql-app-depl.yaml) file contains specifications for database engine [deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#writing-a-deployment-spec), which runs MSSQL Server in a container, and a ClusterIP service which is intended to [expose an app](https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/) on an internal IP in the cluster. The db server will be only reachable inside the cluster.
+
+2. Application deployment
+
+The [app-depl.yaml](/K8S/app-depl.yaml) file describes application deployment itself and a ClusterIP service for it (similar to described above):
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xafcontainerexample
+  template:
+    metadata:
+      labels:
+        app: xafcontainerexample
+    spec:
+      containers:
+      - name: xafcontainerexample
+        image: ostashev/xafcontainerexample:latest
+        imagePullPolicy: Never
+        env:
+          - name: CONNECTION_STRING
+            value: K8SMsSqlConnectionString
+        resources:
+          requests:
+            cpu: 400m
+            memory: 500Mi
+          limits:
+            cpu: 800m
+            memory: 1Gi
+```
+
+Here we specify image which was built before, additional environment variables (e.g. CONNECTION_STRING) and what hardware resources the cluster should reserve for this container.
+
+3. Ingress
+
+Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster. Traffic routing is controlled by rules defined on the Ingress resource. Due to fact that Blazor Server application uses long-living Websocket to communicate between browser and server, we need to [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes) to keep the connection to the particular Pod all the time during application using. This [ingress definition](/K8S/ingress-srv.yaml) example is written for Kubernetes version 1.19 and later. Cluster must have an [ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) running.
+
+4. Horizontal Pod Autoscaler.
+
+The [app-hpa.yaml](/K8S/app-hpa.yaml) manifest defines a HorizontalPodAutoscaler (HPA) which scales the number of the running pod replicas according to the specified metricas.
+
+```
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+ name: app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: app-depl
+  minReplicas: 1
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+```
+In this example, we can scale pod replicas from 1 (`minReplicas`) up to 20 (`maxReplicas`) according to the CPU utilization. Refer the [HPA](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details) documentation to learn more.
 
 
 ### Running multi-container application with Docker compose
