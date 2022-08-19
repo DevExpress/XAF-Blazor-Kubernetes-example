@@ -110,5 +110,34 @@ kubectl get hpa
 ## Description
 ### Building a Docker Image
 
+Out Dockerfile contains two sections. The first one is responsible for building the application. It is based on the image provided by Microsoft which contains .NET SDK 6.0. The WORKDIR commands sets the working directory to “/source” inside the container. The next actions will operate relative to this directory. The next COPY commands add required source files to the container filesystem. To build the app, we need a solution file (*.sln) and all the modules files.
 
+```
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+ARG DX_NUGET_SOURCE
+WORKDIR /source
 
+# copy csproj and restore as distinct layers.
+COPY *.sln .
+COPY XAFContainerExample.Blazor.Server/*.csproj ./XAFContainerExample.Blazor.Server/
+COPY XAFContainerExample.Module/*.csproj ./XAFContainerExample.Module/
+RUN dotnet nuget add source $DX_NUGET_SOURCE -n devexpress-nuget
+
+# The similar issue described here: https://stackoverflow.com/questions/61167032/error-netsdk1064-package-dnsclient-1-2-0-was-not-found
+# RUN dotnet restore
+
+COPY XAFContainerExample.Blazor.Server/. ./XAFContainerExample.Blazor.Server/
+COPY XAFContainerExample.Module/. ./XAFContainerExample.Module/
+WORKDIR /source/XAFContainerExample.Blazor.Server
+RUN dotnet publish -c release -o /app --no-cache /restore
+```
+To restore nuget packages correctly, we will pass the DevExpress nuget source url via argument ([ARG](https://docs.docker.com/engine/reference/builder/#arg)). At the end of the section, we will publish our application to the /app directory and copy the entrypoint.sh file there.
+
+The second section describes the application launching process. It is based on another Microsoft image which contains ASP.NET Core runtime 6.0. The ENTRYPOINT instruction specifies a command which will run when running the container.
+
+```
+FROM mcr.microsoft.com/dotnet/aspnet:6.0
+WORKDIR /app
+COPY --from=build /app ./
+ENTRYPOINT [ "dotnet", "XAFContainerExample.Blazor.Server.dll" ]
+```
