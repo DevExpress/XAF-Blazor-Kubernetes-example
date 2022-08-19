@@ -1,23 +1,23 @@
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 ARG DX_NUGET_SOURCE
-WORKDIR /source
-
-# copy csproj and restore as distinct layers.
-COPY *.sln .
-COPY XAFContainerExample.Blazor.Server/*.csproj ./XAFContainerExample.Blazor.Server/
-COPY XAFContainerExample.Module/*.csproj ./XAFContainerExample.Module/
+WORKDIR /src
 RUN dotnet nuget add source $DX_NUGET_SOURCE -n devexpress-nuget
+COPY ["XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj", "XAFContainerExample.Blazor.Server/"]
+COPY ["XAFContainerExample.Module/XAFContainerExample.Module.csproj", "XAFContainerExample.Module/"]
+RUN dotnet restore "XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj"
+COPY . .
+WORKDIR "/src/XAFContainerExample.Blazor.Server"
+RUN dotnet build "XAFContainerExample.Blazor.Server.csproj" -c Release -o /app/build
 
-# The similar issue described here: https://stackoverflow.com/questions/61167032/error-netsdk1064-package-dnsclient-1-2-0-was-not-found
-# RUN dotnet restore
+FROM build AS publish
+RUN dotnet publish "XAFContainerExample.Blazor.Server.csproj" -c Release -o /app/publish
 
-COPY XAFContainerExample.Blazor.Server/. ./XAFContainerExample.Blazor.Server/
-COPY XAFContainerExample.Module/. ./XAFContainerExample.Module/
-WORKDIR /source/XAFContainerExample.Blazor.Server
-RUN dotnet publish -c release -o /app --no-cache /restore
-
-
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
+FROM base AS final
 WORKDIR /app
-COPY --from=build /app ./
-ENTRYPOINT [ "dotnet", "XAFContainerExample.Blazor.Server.dll" ]
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "XAFContainerExample.Blazor.Server.dll"]

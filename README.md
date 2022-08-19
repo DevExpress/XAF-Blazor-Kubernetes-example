@@ -4,7 +4,9 @@ This example shows how to deploy XAF Blazor application to the Kubernetes cluste
 ## Getting started
 1. Install Docker Engine or Docker Desktop
 
-2. Build a docker image:
+2. Clone this repository
+
+3. Build a docker image:
 ```
 docker build -t <your_docker_hub_id>/xafcontainerexample --build-arg DX_NUGET_SOURCE=<your_devexpress_nuget_source_url> .
 ```
@@ -32,14 +34,7 @@ In this particular solution example, we need to pass a CONNECTION_STRING environ
 docker run --network="host" -e CONNECTION_STRING=MySqlConnectionString <your_docker_hub_id>/xafcontainerexample:latest .
 ```
 
-4. (Optional) Here is an example how to run multi-container application using [Docker Compose](https://docs.docker.com/compose/) tool. The `docker-compose.yml` file describes the way the application and the MSSQL Server containers interact. Run the following command to launch:
-
-```
-docker compose up
-```
-Again, make sure that the app is running by the `http://localhost/` URL.
-
-5. We need to store the image in Docker Hub. Log in with your docker credentials and push the image to your Docker Hub:
+4. We need to store the image in Docker Hub. Log in with your docker credentials and push the image to your Docker Hub:
 
 ```
 docker login
@@ -48,15 +43,24 @@ docker login
 docker push <your_docker_hub_id>/xafcontainerexample:latest
 ```
 
-5. Next, run a terminal on the machine with installed Kubernetes distribution. It can be Azure Kubernetes Service (AKS), Google Kubernetes Engine (GKE), locally installed lightweight k3s, minikube or some another version. This example was checked with AKS and locally installed k3s lightweight Kubernetes.
+Note: change the image names in the `app-depl.yaml` and `docker-compose.yml` (optionally) files to pull already built docker images from your own Docker hub.
 
-6. Apply a [Persistent Volume Claim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) definition to create a storage for the database:
+5. (Optional) Here is an example how to run multi-container application using [Docker Compose](https://docs.docker.com/compose/) tool. The `docker-compose.yml` file describes the way the application and the MSSQL Server containers interact. Run the following command to launch:
+
+```
+docker compose up
+```
+Again, make sure that the app is running by the `http://localhost/` URL.
+
+6. Next, run a terminal on the machine with installed Kubernetes distribution. It can be Azure Kubernetes Service (AKS), Google Kubernetes Engine (GKE), locally installed lightweight k3s, minikube or some another version. This example was checked with AKS and locally installed k3s lightweight Kubernetes.
+
+7. Apply a [Persistent Volume Claim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) definition to create a storage for the database:
 
 ```
 kubectl apply -f ./K8S/local-pvc.yaml
 ```
 
-7. Create a MSSQL Server deployment with its ClusterIP Service. But before that, we need to store the DB password into a secret:
+8. Create a MSSQL Server deployment with its ClusterIP Service. But before that, we need to store the DB password into a secret:
 
 ```
 kubectl create secret generic mssql --from-literal=SA_PASSWORD="Qwert1_"
@@ -66,13 +70,13 @@ kubectl create secret generic mssql --from-literal=SA_PASSWORD="Qwert1_"
 kubectl apply -f ./K8S/mssql-app-depl.yaml
 ```
 
-8. Create an application deployment with its ClusterIP Service:
+9. Create an application deployment with its ClusterIP Service:
 
 ```
 kubectl apply -f ./K8S/app-depl.yaml
 ```
 
-9. Now, we need to configure [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) to make the application deployment be accessible outside the cluster and to set up [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes). First, install ingress nginx controller if need (for example, for k3s: https://docs.rancherdesktop.io/how-to-guides/setup-NGINX-Ingress-Controller/). Next, apply the ingress definition:
+10. Now, we need to configure [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) to make the application deployment be accessible outside the cluster and to set up [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes). First, install ingress nginx controller if need (for example, for k3s: https://docs.rancherdesktop.io/how-to-guides/setup-NGINX-Ingress-Controller/). Next, apply the ingress definition:
 
 ```
 kubectl apply -f ./K8S/ingress-srv.yaml
@@ -90,13 +94,13 @@ kubectl get ingress
 
 Try to open a starting page in the browser: http://<your-ip>/
 
-10. The application is running just in a single [Pod](https://kubernetes.io/docs/concepts/workloads/pods/). To make it scale horizontally, let's use [Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/):
+11. The application is running just in a single [Pod](https://kubernetes.io/docs/concepts/workloads/pods/). To make it scale horizontally, let's use [Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/):
 
 ```
 kubectl apply -f ./K8S/app-hpa.yaml
 ```
 
-11. Now, you can check how many pods are running at this moment and their CPU load by the following command:
+12. Now, you can check how many pods are running at this moment and their CPU load by the following command:
 
 ```
 kubectl get hpa
@@ -108,36 +112,86 @@ kubectl get hpa
 
 
 ## Description
-### Building a Docker Image
+### Building XAF Blazor application Docker image
 
-Out Dockerfile contains two sections. The first one is responsible for building the application. It is based on the image provided by Microsoft which contains .NET SDK 6.0. The WORKDIR commands sets the working directory to “/source” inside the container. The next actions will operate relative to this directory. The next COPY commands add required source files to the container filesystem. To build the app, we need a solution file (*.sln) and all the modules files.
+This solution contains a `Dockerfile` example based on [microsoft-dotnet](https://hub.docker.com/_/microsoft-dotnet).
 
 ```
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 ARG DX_NUGET_SOURCE
-WORKDIR /source
-
-# copy csproj and restore as distinct layers.
-COPY *.sln .
-COPY XAFContainerExample.Blazor.Server/*.csproj ./XAFContainerExample.Blazor.Server/
-COPY XAFContainerExample.Module/*.csproj ./XAFContainerExample.Module/
+WORKDIR /src
 RUN dotnet nuget add source $DX_NUGET_SOURCE -n devexpress-nuget
+COPY ["XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj", "XAFContainerExample.Blazor.Server/"]
+COPY ["XAFContainerExample.Module/XAFContainerExample.Module.csproj", "XAFContainerExample.Module/"]
+RUN dotnet restore "XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj"
+COPY . .
+WORKDIR "/src/XAFContainerExample.Blazor.Server"
+RUN dotnet build "XAFContainerExample.Blazor.Server.csproj" -c Release -o /app/build
 
-# The similar issue described here: https://stackoverflow.com/questions/61167032/error-netsdk1064-package-dnsclient-1-2-0-was-not-found
-# RUN dotnet restore
+FROM build AS publish
+RUN dotnet publish "XAFContainerExample.Blazor.Server.csproj" -c Release -o /app/publish
 
-COPY XAFContainerExample.Blazor.Server/. ./XAFContainerExample.Blazor.Server/
-COPY XAFContainerExample.Module/. ./XAFContainerExample.Module/
-WORKDIR /source/XAFContainerExample.Blazor.Server
-RUN dotnet publish -c release -o /app --no-cache /restore
-```
-To restore nuget packages correctly, we will pass the DevExpress nuget source url via argument ([ARG](https://docs.docker.com/engine/reference/builder/#arg)). At the end of the section, we will publish our application to the /app directory and copy the entrypoint.sh file there.
-
-The second section describes the application launching process. It is based on another Microsoft image which contains ASP.NET Core runtime 6.0. The ENTRYPOINT instruction specifies a command which will run when running the container.
-
-```
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
+FROM base AS final
 WORKDIR /app
-COPY --from=build /app ./
-ENTRYPOINT [ "dotnet", "XAFContainerExample.Blazor.Server.dll" ]
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "XAFContainerExample.Blazor.Server.dll"]
 ```
+
+You can also generate it using Visual Stuido Wizard: right click on the YourApp.Blazor.Server project, then choose “Add” -> “Docker Support”. Note that you need to move the created `Dockerfile` up to the root solution folder in this case.
+
+![Docker support](/images/docker-support.png)
+
+
+Also, to restore nuget packages correctly, we will pass the DevExpress nuget source url via argument ([ARG](https://docs.docker.com/engine/reference/builder/#arg)). At the end of the section, we will publish our application to the /app directory and copy the entrypoint.sh file there.
+
+Refer to [Docker reference](https://docs.docker.com/engine/reference/builder/) for better understanding commands syntax.
+
+Note: here you can find a `Dockerfile.win` intended for Windows container. To change the container type in the running Docker instance, right-click the System Tray's Docker icon and choose Switch to Windows containers... If you want to build an image with custom Dockerfile name, use the `-f ` flag:
+
+```
+docker build -f Dockerfile.win -t <your_docker_hub_id>/xafcontainerexample --build-arg DX_NUGET_SOURCE=<your_devexpress_nuget_source_url> .
+```
+### Running XAF Blazor application in Kubernetes cluster
+
+
+
+### Running multi-container application with Docker compose
+
+The `docker-compose.yml` file contains definitions for two containers. The first container uses `xafcontainerexample` image which was described previously. The second allows running MSSQL Server in another container and get access to it from the first one.
+
+```
+version: "3.9"
+services:
+    web:
+        image: "ostashev/xafcontainerexample:latest"
+        build:
+            context: .
+            dockerfile: "./Dockerfile"
+            args:
+              DX_NUGET_SOURCE: ${DX_NUGET_SOURCE}
+        ports:
+          - "80:80"
+        environment:
+            - CONNECTION_STRING=DockerMsSqlConnectionString
+            
+    db:
+        image: "mcr.microsoft.com/mssql/server"
+        environment:
+            SA_PASSWORD: "Qwerty1_"
+            ACCEPT_EULA: "Y"
+        ports:
+          - "1433:1433"
+```
+
+Now, the application running in the first contaier can access the database with the connection string like following:
+
+```
+Pooling=false;Data Source=db;Initial Catalog=XAFContainerExample;User Id=SA;Password=<your_strong_password>
+```
+
+Refer the [Compose specification](https://docs.docker.com/compose/compose-file/) topic for better compose file format understanding.
