@@ -1,7 +1,7 @@
 # XAF-Blazor-Kubernetes-example
 This example shows how to deploy XAF Blazor application to the Kubernetes cluster and to enable horizontal autoscaling. You can find here `Dockerfile` for publishing an app to the Linux container, and *.yaml files, describing deploying app to Kubernetes cluster with MSSQL database engine container, Horizontal Pod Autoscaler and Ingress. 
 
-This application was tested with locally-running cluster (https://k3s.io/) and [Azure Kubernetes Service](https://azure.microsoft.com/en-us/services/kubernetes-service/). The maximum pod replicas number (20) allowed working for 300 concurrent users.
+This application was tested with locally-running cluster (https://k3s.io/) and [Azure Kubernetes Service](https://azure.microsoft.com/en-us/services/kubernetes-service/). The maximum pod replicas number (20) allowed working for 300 concurrent users. The AKS cluster with two nodes (each machine like B4ms: 4 Cores, 16 GB RAM) also can operate with such number of pod replicas and such load.
 
 ## Getting started
 1. Install Docker Engine or Docker Desktop
@@ -68,6 +68,7 @@ kubectl apply -f ./K8S/local-pvc.yaml
 kubectl create secret generic mssql --from-literal=SA_PASSWORD="Qwert1_"
 ```
 
+Then, apply deployment manifest:
 ```
 kubectl apply -f ./K8S/mssql-app-depl.yaml
 ```
@@ -76,6 +77,24 @@ kubectl apply -f ./K8S/mssql-app-depl.yaml
 
 ```
 kubectl apply -f ./K8S/app-depl.yaml
+```
+
+Note: To update the database, you can use the similar approach as above. First, find a pod with running application:
+
+```
+kubectl get pods
+```
+
+```
+NAME                         READY   STATUS    RESTARTS     AGE
+app-depl-f487bdcfd-mxnrz     1/1     Running   0            75m
+mssql-depl-c47fdc8c7-5x5m7   1/1     Running   1 (2s ago)   5s
+```
+
+For example, our application pod's name is `app-depl-f487bdcfd-mxnrz`. Then, run another one application instance in the db updating mode:
+
+```
+kubectl exec -it %pod_name% -- dotnet XAFContainerExample.Blazor.Server.dll --updateDatabase --forceUpdate --silent
 ```
 
 10. Now, we need to configure [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) to make the application deployment be accessible outside the cluster and to set up [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes). First, install ingress nginx controller if need (for example, for k3s: https://docs.rancherdesktop.io/how-to-guides/setup-NGINX-Ingress-Controller/). Next, apply the ingress definition:
@@ -90,9 +109,10 @@ Wait for a couple of minute and check that the application is accessible outside
 kubectl get ingress
 ```
 
-> NAME          CLASS   HOSTS   ADDRESS       PORTS   AGE
-> ingress-srv   nginx   *       <your-ip>     80      5d21h
-
+```
+NAME          CLASS   HOSTS   ADDRESS       PORTS   AGE
+ingress-srv   nginx   *       <your-ip>     80      5d21h
+```
 
 Try to open a starting page in the browser: http://<your-ip>/
 
@@ -108,10 +128,11 @@ kubectl apply -f ./K8S/app-hpa.yaml
 kubectl get hpa
 ```
 
-> user@ubuntu-k8s:~/Work/xaf-blazor-app-load-testing-example$ kubectl get hpa
-> NAME      REFERENCE             TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
-> app-hpa   Deployment/app-depl   13%/50%   1         15        7          54m
-
+```
+user@ubuntu-k8s:~/Work/xaf-blazor-app-load-testing-example$ kubectl get hpa
+NAME      REFERENCE             TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+app-hpa   Deployment/app-depl   13%/50%   1         15        7          54m
+```
 
 ## Description
 ### Building XAF Blazor application Docker image
@@ -248,10 +269,9 @@ spec:
 ```
 In this example, we can scale pod replicas from 1 (`minReplicas`) up to 20 (`maxReplicas`) according to the CPU utilization. Refer the [HPA](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details) documentation to learn more.
 
-
 ### Running multi-container application with Docker compose
 
-The `docker-compose.yml` file contains definitions for two containers. The first container uses `xafcontainerexample` image which was described previously. The second allows running MSSQL Server in another container and get access to it from the first one.
+If you don't want to scale app automatically and set up Kubernetes, you may consider using Docker Compose tool. The `docker-compose.yml` file contains definitions for two containers. The first container uses `xafcontainerexample` image which was described previously. The second allows running MSSQL Server in another container and get access to it from the first one.
 
 ```
 version: "3.9"
@@ -284,3 +304,28 @@ Pooling=false;Data Source=db;Initial Catalog=XAFContainerExample;User Id=SA;Pass
 ```
 
 Refer the [Compose specification](https://docs.docker.com/compose/compose-file/) topic for better compose file format understanding.
+
+### Troubleshooting and limitations
+
+1. When the HPA scales down replicas, some users see an "Connection Error" message in the browser.
+
+This problem is caused by Sticky Session. The browser communicates only with one particular server all the time when page is opened. When the pod replica is being terminated, the connection is lost. A possible workaround for this case is to refresh the browser automatically when unable reconnect to the server. You can find an example of this approach here: [_Host.cshtml](/XAFContainerExample.Blazor.Server/Pages/_Host.cshtml). 
+
+2. Ingress does not work on k3s Kubernetes distribution. The application web page cannot be reached outside the cluster.
+
+Check the ingress-nginx-controller service:
+
+```
+kubectl get svc -n ingress-nginx
+```
+
+```
+NAME                                 TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)                      AGE
+ingress-nginx-controller-admission   ClusterIP      10.43.168.32   <none>          443/TCP                      14m
+ingress-nginx-controller             LoadBalancer   10.43.132.9    <pending>       80:31075/TCP,443:32734/TCP   14m
+```
+If you see that the `ingress-nginx-controller` service external IP is pending infinitely, probably you faced with this issue: https://github.com/rancher/k3os/issues/208. Try a workaround from this comment: https://github.com/rancher/k3os/issues/208#issuecomment-599087377
+
+```
+kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec": {"type": "LoadBalancer", "externalIPs":["your-external-ip"]}}'
+```

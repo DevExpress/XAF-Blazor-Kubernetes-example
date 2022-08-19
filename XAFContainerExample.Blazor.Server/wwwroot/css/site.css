@@ -29,3 +29,13 @@ app {
     height: 100%;
     z-index: 100001;
 }
+
+.loading-spinner {
+    animation: rotate 1.5s linear infinite;
+}
+  
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}

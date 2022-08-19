@@ -49,7 +49,61 @@
             <component type="typeof(BlazorError)" render-mode="Static" />
         </div>
 
-        <script src="_framework/blazor.server.js"></script>
+                <div id="blazor-reconnect-ui" class="bg-dark text-white" style="position: fixed; inset: 0px; z-index: 1050; display: none; overflow: hidden; background-color: rgb(255, 255, 255); opacity: 0.8; text-align: center; font-weight: bold; transition: visibility 0s linear 500ms; visibility: visible;">
+            <h5 id="blazor-reconnect-message" style="margin-top: 20px;"></h5>
+            <div style="border-width: 0.3em; border-style: solid; border-color: rgb(52, 152, 219) rgb(243, 243, 243) rgb(243, 243, 243); border-image: initial; border-radius: 50%; width: 2em; height: 2em; display: inline-block;" class="loading-spinner"/>
+            <button class="btn btn-primary shadow-none" style="margin: 5px auto; display: none;">Retry</button>
+            <p style="display: none;">Alternatively, <a class="text-primary">reload</a></p>
+        </div>
+
+        <script src="_framework/blazor.server.js" autostart="false"></script>
+
+        <script>
+            async function connectionDown(e) {
+                const reconnectEl        = document.getElementById('blazor-reconnect-ui');
+                const reconnectMessageEl = document.getElementById('blazor-reconnect-message');
+
+                reconnectEl.style.display = 'block';                
+
+                for (let i = 0; i < e.maxRetries; i++) {
+                    reconnectMessageEl.innerText = `Attempting to reconnect to the server: ${i + 1} of ${e.maxRetries}`;
+
+                    await new Promise(resolve => setTimeout(resolve, e.retryIntervalMilliseconds));
+                            
+                    try {
+                        const result = await window.Blazor.reconnect();
+                                
+                        if (!result)
+                            reconnectMessageEl.innerText = "Server Rejected";
+                        else
+                            return;
+                    }
+                    catch (err) {                
+                        console.error(err);
+                    }
+                }
+
+                location.reload();
+            }
+
+
+            function connectionUp(e) {
+                const reconnectEl = document.getElementById('blazor-reconnect-ui');
+
+                reconnectEl.style.display = 'none';
+            }
+
+            Blazor.start({
+                reconnectionOptions: {
+                    maxRetries: 5,
+                    retryIntervalMilliseconds: 5000
+                },
+                reconnectionHandler: {
+                    onConnectionDown: e => connectionDown(e),
+                    onConnectionUp: e => connectionUp(e)
+                }
+            });
+    </script>
     }
 </body>
 </html>
