@@ -316,6 +316,8 @@ Refer the [Compose specification](https://docs.docker.com/compose/compose-file/)
 
 This problem is caused by Sticky Session. The browser communicates only with one particular server all the time when page is opened. When the pod replica is being terminated, the connection is lost. A possible workaround for this case is to refresh the browser automatically when unable reconnect to the server. You can find an example of this approach here: [_Host.cshtml](/XAFContainerExample.Blazor.Server/Pages/_Host.cshtml). 
 
+Besides, it is possible to allow handle Pod's termination process inside the container to finish running processes gracefully. You can set a [terminationGracePeriodSeconds](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#lifecycle) value (30 seconds by default), which defines a delay in seconds after a termination signal is sent to the main process in the container and before the process will be forcibly halted. You may consider using [Container Lifecycle Hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/) (e.g. the `preStop` hook) to manage an application instance state before it will be stopped.
+
 2. Ingress does not work on k3s Kubernetes distribution. The application web page cannot be reached outside the cluster.
 
 Check the ingress-nginx-controller service:
