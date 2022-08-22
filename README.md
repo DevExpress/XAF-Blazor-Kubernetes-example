@@ -1,6 +1,10 @@
 # XAF-Blazor-Kubernetes-example
 This example shows how to deploy XAF Blazor application to the Kubernetes cluster and to enable horizontal autoscaling. You can find here `Dockerfile` for publishing an app to the Linux container, and *.yaml files, describing deploying app to Kubernetes cluster with MSSQL database engine container, Horizontal Pod Autoscaler and Ingress. 
 
+The diagram below shows how our cluster looks:
+
+![Cluster diagram](/images/cluster-diagram.png)
+
 This application was tested with locally-running cluster (https://k3s.io/) and [Azure Kubernetes Service](https://azure.microsoft.com/en-us/services/kubernetes-service/). The maximum pod replicas number (20) allowed working for 300 concurrent users. The AKS cluster with two nodes (each machine like B4ms: 4 Cores, 16 GB RAM) also can operate with such number of pod replicas and such load.
 
 ## Getting started
@@ -135,6 +139,7 @@ app-hpa   Deployment/app-depl   13%/50%   1         15        7          54m
 ```
 
 ## Description
+
 ### Building XAF Blazor application Docker image
 
 This solution contains a `Dockerfile` example based on the [microsoft-dotnet](https://hub.docker.com/_/microsoft-dotnet) images.
