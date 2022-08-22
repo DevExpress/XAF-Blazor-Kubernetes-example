@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: xafcontainerexample
-        image: ostashev/xafcontainerexample:latest
+        image: ostashev/xaf-container-example:latest
         env:
           - name: CONNECTION_STRING
             value: K8SMsSqlConnectionString

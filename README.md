@@ -8,36 +8,31 @@ The diagram below shows how our cluster looks:
 This application was tested with locally-running cluster (https://k3s.io/) and [Azure Kubernetes Service](https://azure.microsoft.com/en-us/services/kubernetes-service/). The maximum pod replicas number (20) allowed working for 300 concurrent users. The AKS cluster with two nodes (each machine like B4ms: 4 Cores, 16 GB RAM) also can operate with such number of pod replicas and such load.
 
 ## Getting started
-1. Install Docker Engine or Docker Desktop
+1. Install Docker Engine or Docker Desktop.
 
-2. Clone this repository
+2. Clone this repository.
 
-3. Build a docker image:
+3. Build a docker image. To pass a nuget source url safely, we need to use [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) and the `--secret` flag:
 ```
-docker build -t <your_docker_hub_id>/xafcontainerexample --build-arg DX_NUGET_SOURCE=<your_devexpress_nuget_source_url> .
-```
-
-If you do this on Linux machine and see an error like “docker: Got permission denied while trying to connect to the Docker daemon socket at …”, just run the command as a superuser:
-```
-sudo docker docker build -t <your_docker_hub_id>/xafcontainerexample --build-arg DX_NUGET_SOURCE=<your_devexpress_nuget_source_url> .
+DOCKER_BUILDKIT=1 docker build -t your_docker_hub_id/xafcontainerexample --secret id=dxnuget,src=<( echo your_devexpress_nuget_source_url ) .
 ```
 
 You can run a container with this image by the following command:
 
 ```
-docker run <your_docker_hub_id>/xafcontainerexample:latest .
+docker run your_docker_hub_id/xaf-container-example:latest .
 ```
 
 Now, your application is accessible by the `http://localhost/` URL. If you see a database version mismatch error in the console, force the db update by the launching another one application instance in the running container. Find the container's id by the `docker ps` command. Then, run the following:
 
 ```
-docker exec <your_container_id> dotnet xafcontainerexample.Blazor.Server.dll --updateDatabase --forceUpdate --silent
+docker exec your_container_id dotnet XAFContainerExample.Blazor.Server.dll --updateDatabase --forceUpdate --silent
 ```
 
 In this particular solution example, we need to pass a CONNECTION_STRING environment variable specifiying which connection string (specified in the appsetting.json file) we will use in the container. Here the MySqlConnectionString allows using a database hosted on the host machine.
 
 ```
-docker run --network="host" -e CONNECTION_STRING=MySqlConnectionString <your_docker_hub_id>/xafcontainerexample:latest .
+docker run --network="host" -e CONNECTION_STRING=MySqlConnectionString your_docker_hub_id/xaf-container-example:latest .
 ```
 
 4. We need to store the image in Docker Hub. Log in with your docker credentials and push the image to your Docker Hub:
@@ -46,7 +41,7 @@ docker run --network="host" -e CONNECTION_STRING=MySqlConnectionString <your_doc
 docker login
 ```
 ```
-docker push <your_docker_hub_id>/xafcontainerexample:latest
+docker push your_docker_hub_id/xaf-container-example:latest
 ```
 
 Note: change the image names in the `app-depl.yaml` and `docker-compose.yml` (optionally) files to pull already built docker images from your own Docker hub.
@@ -151,9 +146,8 @@ EXPOSE 80
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-ARG DX_NUGET_SOURCE
 WORKDIR /src
-RUN dotnet nuget add source $DX_NUGET_SOURCE -n devexpress-nuget
+RUN --mount=type=secret,id=dxnuget dotnet nuget add source $(cat /run/secrets/dxnuget) -n devexpress-nuget
 COPY ["XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj", "XAFContainerExample.Blazor.Server/"]
 COPY ["XAFContainerExample.Module/XAFContainerExample.Module.csproj", "XAFContainerExample.Module/"]
 RUN dotnet restore "XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj"
@@ -175,7 +169,7 @@ You can also generate it using Visual Stuido Wizard: right click on the YourApp.
 ![Docker support](/images/docker-support.png)
 
 
-Also, to restore nuget packages correctly, we will pass the DevExpress nuget source url via argument ([ARG](https://docs.docker.com/engine/reference/builder/#arg)). At the end of the section, we will publish our application to the /app directory and copy the entrypoint.sh file there.
+Also, to restore nuget packages correctly, we will pass the DevExpress nuget source url via secret ([BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information)). At the end of the section, we will publish our application to the /app directory and copy the entrypoint.sh file there.
 
 Refer to [Docker reference](https://docs.docker.com/engine/reference/builder/) for better understanding commands syntax.
 
@@ -228,7 +222,7 @@ spec:
     spec:
       containers:
       - name: xafcontainerexample
-        image: ostashev/xafcontainerexample:latest
+        image: devexpress/xaf-container-example:latest
         imagePullPolicy: Never
         env:
           - name: CONNECTION_STRING
@@ -282,16 +276,11 @@ If you don't want to scale app automatically and set up Kubernetes, you may cons
 version: "3.9"
 services:
     web:
-        image: "ostashev/xafcontainerexample:latest"
-        build:
-            context: .
-            dockerfile: "./Dockerfile"
-            args:
-              DX_NUGET_SOURCE: ${DX_NUGET_SOURCE}
+        image: "devexpress/xaf-container-example:latest"
         ports:
           - "80:80"
         environment:
-            - CONNECTION_STRING=DockerMsSqlConnectionString
+          - CONNECTION_STRING=DockerMsSqlConnectionString
             
     db:
         image: "mcr.microsoft.com/mssql/server"
