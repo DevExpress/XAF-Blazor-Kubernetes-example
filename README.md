@@ -20,7 +20,7 @@ DOCKER_BUILDKIT=1 docker build -t your_docker_hub_id/xafcontainerexample --secre
 You can run a container with this image by the following command:
 
 ```
-docker run your_docker_hub_id/xaf-container-example:latest .
+docker run -p 80:80 your_docker_hub_id/xaf-container-example:latest .
 ```
 
 Now, your application is accessible by the `http://localhost/` URL. If you see a database version mismatch error in the console, force the db update by the launching another one application instance in the running container. Find the container's id by the `docker ps` command. Then, run the following:
@@ -173,11 +173,6 @@ Also, to restore nuget packages correctly, we will pass the DevExpress nuget sou
 
 Refer to [Docker reference](https://docs.docker.com/engine/reference/builder/) for better understanding commands syntax.
 
-Note: here you can find a `Dockerfile.win` intended for Windows container. To change the container type in the running Docker instance, right-click the System Tray's Docker icon and choose Switch to Windows containers... If you want to build an image with custom Dockerfile name, use the `-f ` flag:
-
-```
-docker build -f Dockerfile.win -t <your_docker_hub_id>/xafcontainerexample --build-arg DX_NUGET_SOURCE=<your_devexpress_nuget_source_url> .
-```
 ### Running XAF Blazor application in Kubernetes cluster
 
 This section describes all the specifications located in the `K8S` folder. They should be enough to deploy and run XAF Blazor application with load balancing and autoscaling.
@@ -324,4 +319,18 @@ If you see that the `ingress-nginx-controller` service external IP is pending in
 
 ```
 kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec": {"type": "LoadBalancer", "externalIPs":["your-external-ip"]}}'
+```
+
+3. Building a Docker image for Windows container.
+
+Docker BuildKit is only supported for building Linux containers. To avoid passing DevExpress Nuget source insecurely, we can the following workaround: build the application on the local machine and put the ready app to the image. Here you can find a `Dockerfile.win` illustrating this approach. 
+
+```
+dotnet publish ./XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj -c Release -o /app
+```
+
+Change the container type in the running Docker instance by right-click the System Tray's Docker icon and choose "Switch to Windows containers...". To build an image with custom Dockerfile name, use the `-f ` flag:
+
+```
+docker build -f Dockerfile.win -t <your_docker_hub_id>/xaf-container-example:win .
 ```
