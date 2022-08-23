@@ -14,7 +14,7 @@ This application was tested with locally-running cluster (https://k3s.io/) and [
 
 3. Build a docker image. To pass a nuget source url safely, we need to use [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) and the `--secret` flag:
 ```
-DOCKER_BUILDKIT=1 docker build -t your_docker_hub_id/xafcontainerexample --secret id=dxnuget,src=<( echo your_devexpress_nuget_source_url ) .
+DOCKER_BUILDKIT=1 docker build -t your_docker_hub_id/xaf-container-example --secret id=dxnuget,src=<( echo your_devexpress_nuget_source_url ) .
 ```
 
 You can run a container with this image by the following command:
@@ -29,7 +29,7 @@ Now, your application is accessible by the `http://localhost/` URL. If you see a
 docker exec your_container_id dotnet XAFContainerExample.Blazor.Server.dll --updateDatabase --forceUpdate --silent
 ```
 
-In this particular solution example, we need to pass a CONNECTION_STRING environment variable specifiying which connection string (specified in the appsetting.json file) we will use in the container. Here the MySqlConnectionString allows using a database hosted on the host machine.
+In this particular solution example, we need to pass a CONNECTION_STRING environment variable specifiying which connection string name (defined in the appsetting.json file) we will use in the container. Here the MySqlConnectionString allows using a database hosted on the host machine.
 
 ```
 docker run --network="host" -e CONNECTION_STRING=MySqlConnectionString your_docker_hub_id/xaf-container-example:latest .
