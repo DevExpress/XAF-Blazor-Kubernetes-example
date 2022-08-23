@@ -53,7 +53,7 @@ docker compose up
 ```
 Again, make sure that the app is running by the `http://localhost/` URL.
 
-6. Next, run a terminal on the machine with installed Kubernetes distribution. It can be Azure Kubernetes Service (AKS), Google Kubernetes Engine (GKE), locally installed lightweight k3s, minikube or some another version. This example was checked with AKS and locally installed k3s lightweight Kubernetes.
+6. Next, run a terminal on the machine with installed Kubernetes distribution. It can be Azure Kubernetes Service (AKS), Google Kubernetes Engine (GKE), locally installed lightweight [k3s](https://k3s.io/), [minikube](https://minikube.sigs.k8s.io/docs/) or some another version. This example was checked with AKS and locally installed k3s lightweight Kubernetes.
 
 7. Apply a [Persistent Volume Claim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) definition to create a storage for the database:
 
@@ -64,7 +64,7 @@ kubectl apply -f ./K8S/local-pvc.yaml
 8. Create a MSSQL Server deployment with its ClusterIP Service. But before that, we need to store the DB password into a secret:
 
 ```
-kubectl create secret generic mssql --from-literal=SA_PASSWORD="Qwert1_"
+kubectl create secret generic mssql --from-literal=SA_PASSWORD="Qwerty1_"
 ```
 
 Then, apply deployment manifest:
