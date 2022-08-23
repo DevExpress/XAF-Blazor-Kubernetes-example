@@ -17,7 +17,7 @@ spec:
         image: devexpress/xaf-container-example:latest
         env:
           - name: CONNECTION_STRING
-            value: K8SMsSqlConnectionString
+            value: K8sMSSQLConnectionString
         resources:
           requests:
             cpu: 400m

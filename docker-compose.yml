@@ -5,7 +5,7 @@ services:
         ports:
           - "80:80"
         environment:
-          - CONNECTION_STRING=DockerMsSqlConnectionString
+          - CONNECTION_STRING=DockerComposeMSSQLConnectionString
             
     db:
         image: "mcr.microsoft.com/mssql/server"

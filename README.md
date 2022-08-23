@@ -49,7 +49,7 @@ Note: change the image names in the `app-depl.yaml` and `docker-compose.yml` (op
 5. (Optional) Here is an example how to run multi-container application using [Docker Compose](https://docs.docker.com/compose/) tool. The `docker-compose.yml` file describes the way the application and the MSSQL Server containers interact. Run the following command to launch:
 
 ```
-docker compose up
+docker-compose up
 ```
 Again, make sure that the app is running by the `http://localhost/` URL.
 
@@ -72,7 +72,7 @@ Then, apply deployment manifest:
 kubectl apply -f ./K8S/mssql-app-depl.yaml
 ```
 
-9. Create an application deployment with its ClusterIP Service:
+9. Create an application deployment with its ClusterIP Service. Open the [app-depl.yaml](/K8S/app-depl.yaml) file and change the `devexpress` docker hub id to yours (or leave it as is to pull the image from DevExpress repository). Apply the deployment manifest:
 
 ```
 kubectl apply -f ./K8S/app-depl.yaml
@@ -221,7 +221,7 @@ spec:
         imagePullPolicy: Never
         env:
           - name: CONNECTION_STRING
-            value: K8SMsSqlConnectionString
+            value: K8sMSSQLConnectionString
         resources:
           requests:
             cpu: 400m
