@@ -29,10 +29,10 @@ Now, your application is accessible by the `http://localhost/` URL. If you see a
 docker exec your_container_id dotnet XAFContainerExample.Blazor.Server.dll --updateDatabase --forceUpdate --silent
 ```
 
-In this particular solution example, we need to pass a CONNECTION_STRING environment variable specifiying which connection string name (defined in the appsetting.json file) we will use in the container. Here the MySqlConnectionString allows using a database hosted on the host machine.
+In this particular solution example, we need to pass a CONNECTION_STRING environment variable specifiying which connection string name (defined in the appsetting.json file) we will use in the container.
 
 ```
-docker run --network="host" -e CONNECTION_STRING=MySqlConnectionString your_docker_hub_id/xaf-container-example:latest .
+docker run --network="host" -e CONNECTION_STRING=MSSQLConnectionString your_docker_hub_id/xaf-container-example:latest .
 ```
 
 4. We need to store the image in Docker Hub. Log in with your docker credentials and push the image to your Docker Hub:
@@ -326,11 +326,17 @@ kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec": {"type"
 Docker BuildKit is only supported for building Linux containers. To avoid passing DevExpress Nuget source insecurely, we can the following workaround: build the application on the local machine and put the ready app to the image. Here you can find a `Dockerfile.win` illustrating this approach. 
 
 ```
-dotnet publish ./XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj -c Release -o /app
+dotnet publish ./XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj -c Release -o ./app
 ```
 
 Change the container type in the running Docker instance by right-click the System Tray's Docker icon and choose "Switch to Windows containers...". To build an image with custom Dockerfile name, use the `-f ` flag:
 
 ```
 docker build -f Dockerfile.win -t <your_docker_hub_id>/xaf-container-example:win .
+```
+
+Note: the way to run the container mentioned in the "Getting Started" section would not work for Windows because the `--network="host"` mode is only supported on Docker for Linux. Use the [host.docker.internal](https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host) hostname instead of `localhost` in the connection string.
+
+```
+docker run -p 80:80 -e CONNECTION_STRING=DockerMSSQLConnectionString your_docker_hub_id/xaf-container-example:latest .
 ```

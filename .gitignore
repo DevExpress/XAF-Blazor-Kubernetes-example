@@ -112,3 +112,4 @@ obj
 *.dll
 *.exe
 screenshots
+/app
