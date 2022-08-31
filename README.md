@@ -359,46 +359,51 @@ Refer the [Compose specification](https://docs.docker.com/compose/compose-file/)
 
 ### Troubleshooting and limitations
 
-1. When the HPA scales down replicas, some users see an "Connection Error" message in the browser.
+#### 1. When the HPA scales down replicas, some users see a "Connection Error" message in the browser
 
-This problem is caused by Sticky Session. The browser communicates only with one particular server all the time when page is opened. When the pod replica is being terminated, the connection is lost. A possible workaround for this case is to refresh the browser automatically when unable reconnect to the server. You can find an example of this approach here: [_Host.cshtml](/XAFContainerExample.Blazor.Server/Pages/_Host.cshtml). 
+This problem is caused by a Sticky Session. The browser communicates with only one particular server all the time a page is open. When a pod replica is terminated, the connection is lost. You can implement a workaround - refresh the browser if the app loses server connection. You can find an example in the following file: [_Host.cshtml](/XAFContainerExample.Blazor.Server/Pages/_Host.cshtml). 
 
-Besides, it is possible to allow handle Pod's termination process inside the container to finish running processes gracefully. You can set a [terminationGracePeriodSeconds](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#lifecycle) value (30 seconds by default), which defines a delay in seconds after a termination signal is sent to the main process in the container and before the process will be forcibly halted. You may consider using [Container Lifecycle Hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/) (e.g. the `preStop` hook) to manage an application instance state before it will be stopped.
+A Pod can also finish processes gracefully upon termination. You can set the [terminationGracePeriodSeconds](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#lifecycle) option (30 seconds by default) to specify a delay, in seconds, after the container receives the termination signal and before it forcibly halts the process. You may also consider [Container Lifecycle Hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/) (such as `preStop`) to manage application instance state before pod termination.
 
-2. Ingress does not work on k3s Kubernetes distribution. The application web page cannot be reached outside the cluster.
+#### 2. Ingress does not work on K3s Kubernetes distribution. The application web page cannot be reached outside the cluster.
 
-Check the ingress-nginx-controller service:
+Check the `ingress-nginx-controller` service:
 
 ```
 kubectl get svc -n ingress-nginx
 ```
+
+The output may look like this:
 
 ```
 NAME                                 TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)                      AGE
 ingress-nginx-controller-admission   ClusterIP      10.43.168.32   <none>          443/TCP                      14m
 ingress-nginx-controller             LoadBalancer   10.43.132.9    <pending>       80:31075/TCP,443:32734/TCP   14m
 ```
-If you see that the `ingress-nginx-controller` service external IP is pending infinitely, probably you faced with this issue: https://github.com/rancher/k3os/issues/208. Try a workaround from this comment: https://github.com/rancher/k3os/issues/208#issuecomment-599087377
+
+See if the `ingress-nginx-controller` service always displays 'pending' under **External IP**. If that is the case, you probably experience the following issue: https://github.com/rancher/k3os/issues/208. Try a workaround from the following comment: https://github.com/rancher/k3os/issues/208#issuecomment-599087377
 
 ```
 kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec": {"type": "LoadBalancer", "externalIPs":["your-external-ip"]}}'
 ```
 
-3. Building a Docker image for Windows container.
+#### 3. Building a Docker image for a Windows container
 
-Docker BuildKit is only supported for building Linux containers. To avoid passing DevExpress Nuget source insecurely, we can the following workaround: build the application on the local machine and put the ready app to the image. Here you can find a `Dockerfile.win` illustrating this approach. 
+Docker BuildKit supports only Linux containers. If you need to build an image for a Windows container, use the following workaround to avoid passing DevExpress NuGet source insecurely. 
+
+Build the application on the local machine and put the app into an image.
 
 ```
 dotnet publish ./XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj -c Release -o ./app
 ```
 
-Change the container type in the running Docker instance by right-click the System Tray's Docker icon and choose "Switch to Windows containers...". To build an image with custom Dockerfile name, use the `-f ` flag:
+Change the container type in the running Docker instance. Right-click the System Tray's Docker icon and choose **Switch to Windows containers...** To build an image with custom Dockerfile name, use the `-f ` flag:
 
 ```
 docker build -f Dockerfile.win -t <your_docker_hub_id>/xaf-container-example:win .
 ```
 
-Note: the way to run the container mentioned in the "Getting Started" section would not work for Windows because the `--network="host"` mode is only supported on Docker for Linux. Use the [host.docker.internal](https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host) hostname instead of `localhost` in the connection string.
+You cannot run the container on Windows in the same manner as described in the "Getting Started" section. The `--network="host"` mode is only supported on Docker for Linux. Use the [host.docker.internal](https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host) as the hostname instead of `localhost`.
 
 ```
 docker run -p 80:80 -e CONNECTION_STRING=DockerMSSQLConnectionString your_docker_hub_id/xaf-container-example:latest .
