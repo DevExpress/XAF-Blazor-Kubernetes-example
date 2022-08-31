@@ -3,7 +3,7 @@ This example shows how to deploy XAF Blazor application to the Kubernetes cluste
 
 The diagram below shows how our cluster looks:
 
-![Cluster diagram](/images/cluster-diagram.png)
+![Cluster diagram](/images/cluster-diagram.png) 
 
 This application was tested with locally-running cluster (https://k3s.io/) and [Azure Kubernetes Service](https://azure.microsoft.com/en-us/services/kubernetes-service/). The maximum pod replicas number (20) allowed working for 300 concurrent users. The AKS cluster with two nodes (each machine like B4ms: 4 Cores, 16 GB RAM) also can operate with such number of pod replicas and such load.
 
