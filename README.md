@@ -187,9 +187,9 @@ app-hpa   Deployment/app-depl   13%/50%   1         15        7          54m
 
 ## Description
 
-### Building XAF Blazor application Docker image
+### Build a Docker image for an XAF Blazor application 
 
-This solution contains a `Dockerfile` example based on the [microsoft-dotnet](https://hub.docker.com/_/microsoft-dotnet) images.
+This solution contains a `Dockerfile` example based on [microsoft-dotnet](https://hub.docker.com/_/microsoft-dotnet) images.
 
 ```
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
@@ -216,22 +216,23 @@ COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "XAFContainerExample.Blazor.Server.dll"]
 ```
 
-You can also generate it using Visual Stuido Wizard: right click on the YourApp.Blazor.Server project, then choose “Add” -> “Docker Support”. Note that you need to move the created `Dockerfile` up to the root solution folder in this case.
+You can also generate such a file in Visual Studio. Right-click the **YourApp.Blazor.Server** project and select **Add | Docker Support**. Note that you need to move the created `Dockerfile` up to the root solution folder.
 
 ![Docker support](/images/docker-support.png)
 
+To restore NuGet packages correctly, pass the DevExpress NuGet source URL via secret ([BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information)). At the end of the section, we will publish our application to the /app directory and copy the entrypoint.sh file there.
 
-Also, to restore nuget packages correctly, we will pass the DevExpress nuget source url via secret ([BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information)). At the end of the section, we will publish our application to the /app directory and copy the entrypoint.sh file there.
+Refer to [Docker reference](https://docs.docker.com/engine/reference/builder/) for additional information on command syntax.
 
-Refer to [Docker reference](https://docs.docker.com/engine/reference/builder/) for better understanding commands syntax.
+### Run an XAF Blazor application in a Kubernetes cluster
 
-### Running XAF Blazor application in Kubernetes cluster
+This section describes all the specifications located in the `K8S` folder. These specifications are sufficient to deploy and run an XAF Blazor application with load balancing and autoscaling.
 
-This section describes all the specifications located in the `K8S` folder. They should be enough to deploy and run XAF Blazor application with load balancing and autoscaling.
+#### 1. Database deployment
 
-1. Database deployment
+Database deployment requires a storage. 
 
-The database deployment requires a storage. The PersistentVolume subsystem provides an API for users and administrators that abstracts details of how storage is provided from how it is consumed. A PersistentVolumeClaim (PVC) is a request for a storage. Here is a specification for a simple PVC ([local-pvc.yaml](/K8S/local-pvc.yaml)) which is pretty enough for locally-running cluster (e.g. [k3s](https://k3s.io/)):
+The [PersistentVolume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) subsystem implements API that abstracts details of storage allocation from storage consumption. A **PersistentVolumeClaim** (PVC) is a request for storage. The sample below is a specification for a simple PVC ([local-pvc.yaml](/K8S/local-pvc.yaml)), sufficient for a locally-run cluster, such as [k3s](https://k3s.io/):
 
 ```
 apiVersion: v1
@@ -246,11 +247,14 @@ spec:
       storage: 1Gi
 ```
 
-The [mssql-app-depl.yaml](/K8S/mssql-app-depl.yaml) file contains specifications for database engine [deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#writing-a-deployment-spec), which runs MSSQL Server in a container, and a ClusterIP service which is intended to [expose an app](https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/) on an internal IP in the cluster. The db server will be only reachable inside the cluster.
+The [mssql-app-depl.yaml](/K8S/mssql-app-depl.yaml) file contains specifications for database engine [deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#writing-a-deployment-spec). The deployment procedure accomplishes two tasks: 
 
-2. Application deployment
+- Runs Microsoft SQL Server in a container
+- Runs ClusterIP service to [expose an app](https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/) on an internal IP in the cluster. (The database server is only reachable inside the cluster.)
 
-The [app-depl.yaml](/K8S/app-depl.yaml) file describes application deployment itself and a ClusterIP service for it (similar to described above):
+#### 2. Application deployment
+
+The [app-depl.yaml](/K8S/app-depl.yaml) file describes application deployment parameters, including a ClusterIP service:
 
 ```
 apiVersion: apps/v1
@@ -283,15 +287,19 @@ spec:
             memory: 1Gi
 ```
 
-Here we specify image which was built before, additional environment variables (e.g. CONNECTION_STRING) and what hardware resources the cluster should reserve for this container.
+The file specifies the pre-built image, additional environment variables (such as CONNECTION_STRING), and hardware resources that the cluster should reserve for this container.
 
-3. Ingress
+#### 3. Ingress
 
-Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster. Traffic routing is controlled by rules defined on the Ingress resource. Due to fact that Blazor Server application uses long-living Websocket to communicate between browser and server, we need to [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes) to keep the connection to the particular Pod all the time during application using. This [ingress definition](/K8S/ingress-srv.yaml) example is written for Kubernetes version 1.19 and later. Cluster must have an [ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) running.
+Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster. Traffic routing is controlled by rules defined on the Ingress resource. Visit the following webpage from Kubernetes documentation to learn more: [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/).  
 
-4. Horizontal Pod Autoscaler.
+Blazor Server applications use long-living WebSocket to communicate between browser and server. This means that you need to enable [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes) to maintain the connection to a Pod during the entire application run. 
 
-The [app-hpa.yaml](/K8S/app-hpa.yaml) manifest defines a HorizontalPodAutoscaler (HPA) which scales the number of the running pod replicas according to the specified metricas.
+The [ingress definition](/K8S/ingress-srv.yaml) example in this repository works with Kubernetes version 1.19 and later. The cluster must run an [ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/).
+
+#### 4. Horizontal Pod Autoscaler.
+
+The [app-hpa.yaml](/K8S/app-hpa.yaml) manifest defines a HorizontalPodAutoscaler (HPA) that adjusts the number of running pod replicas according to the specified metrics.
 
 ```
 apiVersion: autoscaling/v2
@@ -313,11 +321,14 @@ spec:
         type: Utilization
         averageUtilization: 50
 ```
-In this example, we can scale pod replicas from 1 (`minReplicas`) up to 20 (`maxReplicas`) according to the CPU utilization. Refer the [HPA](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details) documentation to learn more.
 
-### Running multi-container application with Docker compose
+This example can scale pod replicas from 1 (`minReplicas`) up to 20 (`maxReplicas`) based on CPU utilization. Refer the [HPA documentation](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details) to learn more.
 
-If you don't want to scale app automatically and set up Kubernetes, you may consider using Docker Compose tool. The `docker-compose.yml` file contains definitions for two containers. The first container uses `xafcontainerexample` image which was described previously. The second allows running MSSQL Server in another container and get access to it from the first one.
+### Use Docker Compose to run a multi-container application
+
+If you don't want to scale the app automatically and set up Kubernetes, consider **Docker Compose**. 
+
+The `docker-compose.yml` file contains definitions for two containers. The first uses the `xafcontainerexample` image described above. The second runs a Microsoft SQL Server and allows access to it from the first container.
 
 ```
 version: "3.9"
@@ -338,13 +349,13 @@ services:
           - "1433:1433"
 ```
 
-Now, the application running in the first contaier can access the database with the connection string like following:
+The application from the first contaier can use the following connection string to access the database:
 
 ```
 Pooling=false;Data Source=db;Initial Catalog=XAFContainerExample;User Id=SA;Password=<your_strong_password>
 ```
 
-Refer the [Compose specification](https://docs.docker.com/compose/compose-file/) topic for better compose file format understanding.
+Refer the [Compose specification](https://docs.docker.com/compose/compose-file/) webpage for better understanding of the Compose file format.
 
 ### Troubleshooting and limitations
 
