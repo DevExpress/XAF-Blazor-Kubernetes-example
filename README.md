@@ -1,13 +1,13 @@
 # Deploy an XAF Application to a Kubernetes Cluster
 
-Follow the instruction in this example to deploy an XAF Blazor application to a Kubernetes cluster and enable horizontal autoscaling. 
+Follow the instruction in this example to deploy an XAF Blazor application to a Kubernetes cluster with horizontal autoscaling. 
 
-The repository contains the following useful resources: 
+This repository contains the following useful resources: 
 
 * a `Dockerfile` that helps you publish an app to a Linux container
 * *.yaml files that help you deploy an app to a Kubernetes cluster with Microsoft SQL Server database engine container, Horizontal Pod Autoscaler, and Ingress 
 
-The diagram below illustrates the cluster architecture:
+The following diagram illustrates the cluster architecture:
 
 ![Cluster diagram](/images/cluster-diagram.png)
 
@@ -17,60 +17,73 @@ We tested the application in two types of clusters: locally-run [K3s](https://k3
 
 ### 1. Install Docker Engine or Docker Desktop
 
+Visit [docker.com](https://www.docker.com/) for downloads and additional information.
+
 ### 2. Clone this repository
 
-### 3. Build a docker image 
+### 3. Build a Docker image 
 
-To pass a nuget source url safely, we need to use [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) and the `--secret` flag:
+Use [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) to build a Docker image. The `--secret` flag helps you safely pass a NuGet source URL:
+
 ```
 DOCKER_BUILDKIT=1 docker build -t your_docker_hub_id/xaf-container-example --secret id=dxnuget,src=<( echo your_devexpress_nuget_source_url ) .
 ```
 
-You can run a container with this image by the following command:
+The following command runs a container with the image you built:
 
 ```
 docker run -p 80:80 your_docker_hub_id/xaf-container-example:latest .
 ```
 
-Now, your application is accessible by the `http://localhost/` URL. If you see a database version mismatch error in the console, force the db update by the launching another one application instance in the running container. Find the container's id by the `docker ps` command. Then, run the following:
+Your application is now accessible at `http://localhost/`. If you see a database version mismatch error in the console, force a database update: launch another application instance in the running container. Run the following command to find the container's ID first: 
+
+```
+docker ps
+```
+
+Once you obtain the container ID, execute the following command to force the update:
 
 ```
 docker exec your_container_id dotnet XAFContainerExample.Blazor.Server.dll --updateDatabase --forceUpdate --silent
 ```
 
-In this particular solution example, we need to pass a CONNECTION_STRING environment variable specifiying which connection string name (defined in the appsetting.json file) we will use in the container.
+Example in this repository requires that you pass a CONNECTION_STRING environment variable. This variable specifies the connection string name (defined in `appsetting.json`) to be used in the container.
 
 ```
 docker run --network="host" -e CONNECTION_STRING=MSSQLConnectionString your_docker_hub_id/xaf-container-example:latest .
 ```
 
-### 4. Store the image in a Docket Hub 
+### 4. Store the image in the Docket Hub 
 
-We need to store the image in Docker Hub. Log in with your docker credentials and push the image to your Docker Hub:
+Log in with your Docker credentials: 
 
 ```
 docker login
 ```
+
+Push the image to your Docker Hub:
+
 ```
 docker push your_docker_hub_id/xaf-container-example:latest
 ```
 
-Note: change the image names in the `app-depl.yaml` and `docker-compose.yml` (optionally) files to pull already built docker images from your own Docker hub.
+**Note**: You can pull already-built docker images from your own Docker hub. To accomplish this, change image names in the following files: `app-depl.yaml` and `docker-compose.yml` (optional). 
 
-### 5. (Optional) Run a multi-container application using Docker Compose 
+### 5. (Optional) Use Docker Compose to run a multi-container application 
 
-Here is an example how to run multi-container application using [Docker Compose](https://docs.docker.com/compose/) tool. The `docker-compose.yml` file describes the way the application and the MSSQL Server containers interact. Run the following command to launch:
+You can use [Docker Compose](https://docs.docker.com/compose/) to run a multi-container application. The `docker-compose.yml` file describes how the application and Microsoft SQL Server containers interact. Run the following command to launch:
 
 ```
 docker-compose up
 ```
-Again, make sure that the app is running by the `http://localhost/` URL.
+
+Again, make sure that the app is running at `http://localhost/`.
 
 ### 6. Run a terminal 
 
-Next, run a terminal on the machine with installed Kubernetes distribution. It can be Azure Kubernetes Service (AKS), Google Kubernetes Engine (GKE), locally installed lightweight [k3s](https://k3s.io/), [minikube](https://minikube.sigs.k8s.io/docs/) or some another version. This example was checked with AKS and locally installed k3s lightweight Kubernetes.
+Open a terminal on the machine that runs Kubernetes. You can use any Kubernetes version: Azure Kubernetes Service (AKS), Google Kubernetes Engine (GKE), locally installed lightweight [K3s](https://k3s.io/), [minikube](https://minikube.sigs.k8s.io/docs/), or others. As this article already mentioned, we tested this example with AKS and locally-installed K3s.
 
-### 7. Create storage for the database 
+### 7. Create a storage for the database 
 
 Apply a [Persistent Volume Claim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) definition to create a storage for the database:
 
@@ -80,30 +93,35 @@ kubectl apply -f ./K8S/local-pvc.yaml
 
 ### 8. Deploy the database
 
-Create a MSSQL Server deployment with its ClusterIP Service. But before that, we need to store the DB password into a secret:
+Store the database password into a secret:
 
 ```
 kubectl create secret generic mssql --from-literal=SA_PASSWORD="Qwerty1_"
 ```
 
-Then, apply deployment manifest:
+Apply the manifest: create a Microsoft SQL Server deployment with its ClusterIP Service.
+
 ```
 kubectl apply -f ./K8S/mssql-app-depl.yaml
 ```
 
 ### 9. Deploy the application
 
-Create an application deployment with its ClusterIP Service. Open the [app-depl.yaml](/K8S/app-depl.yaml) file and change the `devexpress` docker hub id to yours (or leave it as is to pull the image from DevExpress repository). Apply the deployment manifest:
+Create an application deployment with its ClusterIP Service. 
+
+Open the [app-depl.yaml](/K8S/app-depl.yaml) file and change the `devexpress` Docker Hub id to yours (or leave it as is to pull the image from the DevExpress repository). Apply the deployment manifest:
 
 ```
 kubectl apply -f ./K8S/app-depl.yaml
 ```
 
-Note: To update the database, you can use the similar approach as above. First, find a pod with running application:
+**Note**: To update the database, you can use the following technique. First, find a pod with the running application:
 
 ```
 kubectl get pods
 ```
+
+The command output may look like this:
 
 ```
 NAME                         READY   STATUS    RESTARTS     AGE
@@ -111,7 +129,7 @@ app-depl-f487bdcfd-mxnrz     1/1     Running   0            75m
 mssql-depl-c47fdc8c7-5x5m7   1/1     Running   1 (2s ago)   5s
 ```
 
-For example, our application pod's name is `app-depl-f487bdcfd-mxnrz`. Then, run another one application instance in the db updating mode:
+In the example above, the application pod's name is `app-depl-f487bdcfd-mxnrz`. Use this name to run another application instance in database update mode:
 
 ```
 kubectl exec -it %pod_name% -- dotnet XAFContainerExample.Blazor.Server.dll --updateDatabase --forceUpdate --silent
@@ -119,34 +137,43 @@ kubectl exec -it %pod_name% -- dotnet XAFContainerExample.Blazor.Server.dll --up
 
 ### 10. Configure Ingress 
 
-Now, we need to configure [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) to make the application deployment be accessible outside the cluster and to set up [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes). First, install ingress nginx controller if need (for example, for k3s: https://docs.rancherdesktop.io/how-to-guides/setup-NGINX-Ingress-Controller/). Next, apply the ingress definition:
+In this step, you will accomplish the following: 
+
+* Configure [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) to make the application accessible from outside the cluster 
+* Set up [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes)
+
+Before you proceed, install Ingress NGINX Controller if you haven't done so already. For example, visit the following URL for K3s setup instructions: https://docs.rancherdesktop.io/how-to-guides/setup-NGINX-Ingress-Controller/. 
+
+Apply the Ingress definition:
 
 ```
 kubectl apply -f ./K8S/ingress-srv.yaml
 ```
 
-Wait for a couple of minute and check that the application is accessible outside the cluster:
+Wait for a couple of minutes and check that the application is accessible from outside the cluster:
 
 ```
 kubectl get ingress
 ```
+
+The output may look like this:
 
 ```
 NAME          CLASS   HOSTS   ADDRESS       PORTS   AGE
 ingress-srv   nginx   *       <your-ip>     80      5d21h
 ```
 
-Try to open a starting page in the browser: http://<your-ip>/
+Try to open the starting page in the browser. Use the following URL: `http://<your-ip>/`.
 
 ### 11. Enable Horizontal Scaling 
 
-The application is running just in a single [Pod](https://kubernetes.io/docs/concepts/workloads/pods/). To make it scale horizontally, let's use [Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/):
+The application is now running in a single [Pod](https://kubernetes.io/docs/concepts/workloads/pods/). To scale the app horizontally, you can use [Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/):
 
 ```
 kubectl apply -f ./K8S/app-hpa.yaml
 ```
 
-Now, you can check how many pods are running at this moment and their CPU load by the following command:
+You can now run the following command to see active pods and their CPU load:
 
 ```
 kubectl get hpa
