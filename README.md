@@ -4,8 +4,8 @@ Follow the instruction in this example to deploy an XAF Blazor application to a 
 
 This repository contains the following useful resources: 
 
-* a `Dockerfile` that helps you publish an app to a Linux container
-* *.yaml files that help you deploy an app to a Kubernetes cluster with Microsoft SQL Server database engine container, Horizontal Pod Autoscaler, and Ingress 
+* a `Dockerfile` that helps you publish an app to a Linux container, and a version for a Windows container (`Dockerfile.win`)
+* *.yaml files that help you deploy an app to a Kubernetes cluster with a Microsoft SQL Server database engine container, Horizontal Pod Autoscaler, and Ingress 
 
 The following diagram illustrates the cluster architecture:
 
@@ -393,7 +393,7 @@ Build the application on the local machine and put the app into an image.
 dotnet publish ./XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj -c Release -o ./app
 ```
 
-Change the container type in the running Docker instance. Right-click the System Tray's Docker icon and choose **Switch to Windows containers...** To build an image with custom Dockerfile name, use the `-f ` flag:
+Change the container type in the running Docker instance. Right-click the System Tray's Docker icon and choose **Switch to Windows containers...** To build an image with a custom Dockerfile name, use the `-f ` flag:
 
 ```
 docker build -f Dockerfile.win -t <your_docker_hub_id>/xaf-container-example:win .
@@ -402,5 +402,5 @@ docker build -f Dockerfile.win -t <your_docker_hub_id>/xaf-container-example:win
 You cannot run the container on Windows in the same manner as described in the "Getting Started" section. The `--network="host"` mode is only supported on Docker for Linux. Use the [host.docker.internal](https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host) as the hostname instead of `localhost`.
 
 ```
-docker run -p 80:80 -e CONNECTION_STRING=DockerMSSQLConnectionString your_docker_hub_id/xaf-container-example:latest .
+docker run -p 80:80 -e CONNECTION_STRING=DockerMSSQLConnectionString your_docker_hub_id/xaf-container-example:latest
 ```
