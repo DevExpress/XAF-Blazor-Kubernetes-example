@@ -11,7 +11,7 @@ The following diagram illustrates the cluster architecture:
 
 ![Cluster diagram](/images/cluster-diagram.png)
 
-We tested the application in two types of clusters: locally-run [K3s](https://k3s.io/) and [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/services/kubernetes-service/). The maximum pod replica number (20) allowed 300 concurrent users. An AKS cluster needs two nodes (B4ms machines: 4 Cores, 16 GB RAM) to operate with such a number of pod replicas and the same load.
+We tested the application in two types of clusters: locally-run [K3s](https://k3s.io/) and [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/services/kubernetes-service/). The maximum pod replica number (20) allowed around 300 concurrent users. An AKS cluster needs two nodes (B4ms machines: 4 Cores, 16 GB RAM) to operate with such a number of pod replicas and the same load.
 
 ## Get Started
 
@@ -32,10 +32,12 @@ DOCKER_BUILDKIT=1 docker build -t your_docker_hub_id/xaf-container-example --sec
 The following command runs a container with the image you built:
 
 ```
-docker run -p 80:80 your_docker_hub_id/xaf-container-example:latest .
+docker run --network="host" -e CONNECTION_STRING=MSSQLConnectionString your_docker_hub_id/xaf-container-example:latest
 ```
 
-Your application is now accessible at `http://localhost/`. If you see a database version mismatch error in the console, force a database update: launch another application instance in the running container. Run the following command to find the container's ID first: 
+**Note**: Example in this repository requires that you pass a CONNECTION_STRING environment variable. This variable specifies the connection string name (defined in `appsetting.json`) to be used in the container.
+
+If your XAF Blazor application's database is live and doesn't require updates, then the application is ready for use at `http://localhost/`. If the database doesn't exist or requires an update based on your latest data model and XAF modules, then you will see a database version mismatch error in the console. To resolve the error, force a database update. Launch another application instance in the running container. Run the following command to find the container's ID first:
 
 ```
 docker ps
@@ -45,12 +47,6 @@ Once you obtain the container ID, execute the following command to force the upd
 
 ```
 docker exec your_container_id dotnet XAFContainerExample.Blazor.Server.dll --updateDatabase --forceUpdate --silent
-```
-
-Example in this repository requires that you pass a CONNECTION_STRING environment variable. This variable specifies the connection string name (defined in `appsetting.json`) to be used in the container.
-
-```
-docker run --network="host" -e CONNECTION_STRING=MSSQLConnectionString your_docker_hub_id/xaf-container-example:latest .
 ```
 
 ### 4. Store the image in the Docket Hub 
@@ -77,7 +73,7 @@ You can use [Docker Compose](https://docs.docker.com/compose/) to run a multi-co
 docker-compose up
 ```
 
-Again, make sure that the app is running at `http://localhost/`.
+The application should be available at `http://localhost/`.
 
 ### 6. Run a terminal 
 
@@ -220,7 +216,7 @@ You can also generate such a file in Visual Studio. Right-click the **YourApp.Bl
 
 ![Docker support](/images/docker-support.png)
 
-To restore NuGet packages correctly, pass the DevExpress NuGet source URL via secret ([BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information)). At the end of the section, we will publish our application to the /app directory and copy the entrypoint.sh file there.
+To restore NuGet packages correctly, pass the DevExpress NuGet source URL as a secret (see [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) documentation). 
 
 Refer to [Docker reference](https://docs.docker.com/engine/reference/builder/) for additional information on command syntax.
 
