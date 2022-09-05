@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xafcontainerexample
+  template:
+    metadata:
+      labels:
+        app: xafcontainerexample
+    spec:
+      containers:
+      - name: xafcontainerexample
+        image: devexpress/xaf-container-example:latest
+        env:
+          - name: CONNECTION_STRING
+            value: K8sMSSQLConnectionString
+        resources:
+          requests:
+            cpu: 400m
+            memory: 500Mi
+          limits:
+            cpu: 800m
+            memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-clusterip-srv
+spec:
+  type: ClusterIP
+  selector:
+    app: xafcontainerexample
+  ports:
+    - name: xafcontainerexample
+      protocol: TCP
+      port: 80
+      targetPort: 80

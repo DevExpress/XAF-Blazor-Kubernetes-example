@@ -1,0 +1,109 @@
+﻿@page "/"
+@namespace XAFContainerExample.Blazor.Server
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DevExpress.ExpressApp.Blazor.Components
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!-- meta name="theme-color" content="#000000" -->
+    <title>XAFContainerExample</title>
+    <base href="~/" />
+    <component type="typeof(BootstrapThemeLink)" render-mode="Static" />
+</head>
+<body>
+    @{
+        string userAgent = Request.Headers["User-Agent"];
+        bool isIE = userAgent.Contains("MSIE") || userAgent.Contains("Trident");
+    }
+    @if(isIE) {
+        <link href="css/site.css" rel="stylesheet" />
+        <div class="d-flex flex-column justify-content-center align-items-center h-100">
+            <div class="d-flex">
+                <img class="mt-2 mr-4" src="_content/DevExpress.ExpressApp.Blazor/images/Sad.svg" width="60" height="60" />
+                <div>
+                    <div class="h1">Internet Explorer is not supported.</div>
+                    <p style="font-size: 1rem; opacity: 0.75;" class="m-0">XAFContainerExample cannot be loaded in Internet Explorer.<br>Please use a different browser.</p>
+                </div>
+            </div>
+        </div>
+    }
+    else {
+        <component type="typeof(SplashScreen)" render-mode="Static" param-Caption='"XAFContainerExample"' param-ImagePath='"images/SplashScreen.svg"' />
+
+        <link href="_content/DevExpress.ExpressApp.Blazor/styles.css" rel="stylesheet" />
+        <link href="css/site.css" rel="stylesheet" />
+        <script src="_content/DevExpress.ExpressApp.Blazor/scripts.js"></script>
+
+        <app class="d-none">
+            <component type="typeof(App)" render-mode="Server" />
+        </app>
+        
+        <component type="typeof(AlertsHandler)" render-mode="Server" />
+
+        <div id="blazor-error-ui">
+            <component type="typeof(BlazorError)" render-mode="Static" />
+        </div>
+
+                <div id="blazor-reconnect-ui" class="bg-dark text-white" style="position: fixed; inset: 0px; z-index: 1050; display: none; overflow: hidden; background-color: rgb(255, 255, 255); opacity: 0.8; text-align: center; font-weight: bold; transition: visibility 0s linear 500ms; visibility: visible;">
+            <h5 id="blazor-reconnect-message" style="margin-top: 20px;"></h5>
+            <div style="border-width: 0.3em; border-style: solid; border-color: rgb(52, 152, 219) rgb(243, 243, 243) rgb(243, 243, 243); border-image: initial; border-radius: 50%; width: 2em; height: 2em; display: inline-block;" class="loading-spinner"/>
+            <button class="btn btn-primary shadow-none" style="margin: 5px auto; display: none;">Retry</button>
+            <p style="display: none;">Alternatively, <a class="text-primary">reload</a></p>
+        </div>
+
+        <script src="_framework/blazor.server.js" autostart="false"></script>
+
+        <script>
+            async function connectionDown(e) {
+                const reconnectEl        = document.getElementById('blazor-reconnect-ui');
+                const reconnectMessageEl = document.getElementById('blazor-reconnect-message');
+
+                reconnectEl.style.display = 'block';                
+
+                for (let i = 0; i < e.maxRetries; i++) {
+                    reconnectMessageEl.innerText = `Attempting to reconnect to the server: ${i + 1} of ${e.maxRetries}`;
+
+                    await new Promise(resolve => setTimeout(resolve, e.retryIntervalMilliseconds));
+                            
+                    try {
+                        const result = await window.Blazor.reconnect();
+                                
+                        if (!result)
+                            reconnectMessageEl.innerText = "Server Rejected";
+                        else
+                            return;
+                    }
+                    catch (err) {                
+                        console.error(err);
+                    }
+                }
+
+                location.reload();
+            }
+
+
+            function connectionUp(e) {
+                const reconnectEl = document.getElementById('blazor-reconnect-ui');
+
+                reconnectEl.style.display = 'none';
+            }
+
+            Blazor.start({
+                reconnectionOptions: {
+                    maxRetries: 5,
+                    retryIntervalMilliseconds: 5000
+                },
+                reconnectionHandler: {
+                    onConnectionDown: e => connectionDown(e),
+                    onConnectionUp: e => connectionUp(e)
+                }
+            });
+    </script>
+    }
+</body>
+</html>
