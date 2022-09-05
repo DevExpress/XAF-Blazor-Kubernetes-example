@@ -1,6 +1,6 @@
-# Deploy an XAF Application to a Kubernetes Cluster
+# Deploy and scale an XAF Blazor Server app to serve hundreds of users with Azure Kubernetes Service
 
-Follow the instruction in this example to deploy an XAF Blazor application to a Kubernetes cluster with horizontal autoscaling. 
+Follow the instruction in this example to deploy an XAF Blazor application to a Kubernetes cluster with horizontal autoscaling. We tested the application in two types of clusters: locally-run [K3s](https://k3s.io/) and [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/services/kubernetes-service/). The maximum pod replica number (20) allowed around 300 concurrent users. An AKS cluster needs two nodes (B4ms machines: 4 Cores, 16 GB RAM) to operate with such a number of pod replicas and the same load.
 
 This repository contains the following useful resources: 
 
@@ -10,8 +10,6 @@ This repository contains the following useful resources:
 The following diagram illustrates the cluster architecture:
 
 ![Cluster diagram](/images/cluster-diagram.png)
-
-We tested the application in two types of clusters: locally-run [K3s](https://k3s.io/) and [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/services/kubernetes-service/). The maximum pod replica number (20) allowed around 300 concurrent users. An AKS cluster needs two nodes (B4ms machines: 4 Cores, 16 GB RAM) to operate with such a number of pod replicas and the same load.
 
 ## Get Started
 
@@ -181,7 +179,7 @@ NAME      REFERENCE             TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
 app-hpa   Deployment/app-depl   13%/50%   1         15        7          54m
 ```
 
-## Description
+## Implementation Details
 
 ### Build a Docker image for an XAF Blazor application 
 
@@ -353,15 +351,24 @@ Pooling=false;Data Source=db;Initial Catalog=XAFContainerExample;User Id=SA;Pass
 
 Refer the [Compose specification](https://docs.docker.com/compose/compose-file/) webpage for better understanding of the Compose file format.
 
-### Troubleshooting and limitations
+## FAQ / Troubleshooting and limitations
 
-#### 1. When the HPA scales down replicas, some users see a "Connection Error" message in the browser
+### 1. Will my own XAF Blazor app work with 100, 200, 300, or more concurrent users with the same performance and using the same hardware/software?
+We neither provide a universal calculator for web server hardware/software requirements nor it is possible to give a universal answer without testing (and without misleading people). Everything depends on the complexity of a specific application and implemented behavior, which is different for each developer, application type, environment and even tested use-case scenarios. For instance, the number of persistent classes and their fields, Controllers, Application Model customizations, whether end-users export or import large amounts of data every minute, generate complex reports or do other processor and memory intensive operations, which directly affect the web server response time. For more information, review [XAF ASP.NET WebForms or Blazor Server UI for SaaS with 1000 users](https://supportcenter.devexpress.com/ticket/details/t585727/xaf-asp-net-webforms-or-blazor-server-ui-for-saas-with-1000-users) and [XAF ASP.NET Web Forms application deployment and load testing considerations](https://supportcenter.devexpress.com/ticket/details/s36497/xaf-asp-net-web-forms-application-deployment-and-load-testing-considerations).
+
+Even with this horizontal scaling, we recommend that you carefully test your own and unique XAF Web apps under conditions close to your real production environment to measure the actual performance over time or based on user load. For this, you may be interested in our GitHub example - [XAF Blazor load testing on Linux and MySql using Puppeteer and GitHub Actions](https://github.com/DevExpress/xaf-blazor-app-load-testing-example).
+
+### 2. Will you consult us if we experience configuration or deployment issues with Docker, Kubernetes, Windows or Linux-based servers, hosting providers, etc.?
+I am afraid we cannot assist you on this, because this question (deployment) is not specific to DevExpress (XAF Blazor), and you can do whatever Microsoft ASP.NET Core Blazor Server can handle (refer to [Microsoft Docs](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server) | [Deployment Recommendations for XAF Blazor UI](https://docs.devexpress.com/eXpressAppFramework/403362/deployment/deployment-recommendations-blazor)).
+We also we do not administer web servers, hosting environments for customers; we do not consult on various server and operating system configurations as part of our support services. For more information, please review the Prerequisites and Technical Support Scope sections at https://www.devexpress.com/products/net/application_framework/xaf-considerations-for-newcomers.xml. To troubleshoot issues, we recommend that you first make sure that this deployment scenario works for you without XAF with a pure Blazor Server app (with the same database and XPO or EF Core for data access) - XAF Blazor should work too once you get your non-XAF Blazor Server app up and running.
+
+### 3. How do I avoid a "Connection Error" message in the web browser for some users when the HPA scales down replicas?
 
 This problem is caused by a Sticky Session. The browser communicates with only one particular server all the time a page is open. When a pod replica is terminated, the connection is lost. You can implement a workaround - refresh the browser if the app loses server connection. You can find an example in the following file: [_Host.cshtml](/XAFContainerExample.Blazor.Server/Pages/_Host.cshtml). 
 
 A Pod can also finish processes gracefully upon termination. You can set the [terminationGracePeriodSeconds](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#lifecycle) option (30 seconds by default) to specify a delay, in seconds, after the container receives the termination signal and before it forcibly halts the process. You may also consider [Container Lifecycle Hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/) (such as `preStop`) to manage application instance state before pod termination.
 
-#### 2. Ingress does not work on K3s Kubernetes distribution. The application web page cannot be reached outside the cluster.
+### 4. How do I get Ingress working on K3s Kubernetes distribution (The application web page cannot be reached outside the cluster)?
 
 Check the `ingress-nginx-controller` service:
 
@@ -383,9 +390,9 @@ See if the `ingress-nginx-controller` service always displays 'pending' under **
 kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec": {"type": "LoadBalancer", "externalIPs":["your-external-ip"]}}'
 ```
 
-#### 3. Building a Docker image for a Windows container
+### 5. How do I build a Docker image for a Windows container (Docker BuildKit supports only Linux containers)?
 
-Docker BuildKit supports only Linux containers. If you need to build an image for a Windows container, use the following workaround to avoid passing DevExpress NuGet source insecurely. 
+If you need to build an image for a Windows container, use the following workaround to avoid passing DevExpress NuGet source insecurely. 
 
 Build the application on the local machine and put the app into an image.
 
@@ -403,4 +410,4 @@ You cannot run the container on Windows in the same manner as described in the "
 
 ```
 docker run -p 80:80 -e CONNECTION_STRING=DockerMSSQLConnectionString your_docker_hub_id/xaf-container-example:latest
-```
+``
