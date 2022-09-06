@@ -1,4 +1,4 @@
-# Deploy and scale an XAF Blazor Server app for serving hundreds of users with Azure Kubernetes Service
+# Deploy and scale an XAF Blazor Server app: use Azure Kubernetes Service to serve hundreds of users
 
 Follow the instruction in this example to deploy an XAF Blazor application to a Kubernetes cluster with horizontal autoscaling. We tested the application in two types of clusters: locally-run [K3s](https://k3s.io/) and [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/services/kubernetes-service/). The maximum pod replica number (20) allowed around 300 concurrent users. An AKS cluster needs two nodes (B4ms machines: 4 Cores, 16 GB RAM) to operate with such a number of pod replicas and the same load.
 
@@ -35,7 +35,11 @@ docker run --network="host" -e CONNECTION_STRING=MSSQLConnectionString your_dock
 
 **Note**: Example in this repository requires that you pass a CONNECTION_STRING environment variable. This variable specifies the connection string name (defined in `appsetting.json`) to be used in the container.
 
-If your XAF Blazor application's database is live and doesn't require updates, then the application is ready for use at `http://localhost/`. If the database doesn't exist or requires an update based on your latest data model and XAF modules, then you will see a database version mismatch error in the console. To resolve the error, force a database update. Launch another application instance in the running container. Run the following command to find the container's ID first:
+If the application's database is live and doesn't require updates, then your XAF Blazor application is ready for use at `http://localhost/`. 
+
+If the database isn't ready, you will see a database version mismatch error in the console. Such an error indicates that the database either doesn't exist yet or requires an update (based on your latest changes to data model and XAF modules). To resolve the error, force a database update. Launch another application instance in the running container. 
+
+Run the following command to find the container's ID:
 
 ```
 docker ps
@@ -47,7 +51,7 @@ Once you obtain the container ID, execute the following command to force the upd
 docker exec your_container_id dotnet XAFContainerExample.Blazor.Server.dll --updateDatabase --forceUpdate --silent
 ```
 
-### 4. Store the image in the Docket Hub 
+### 4. Store the image in the Docker Hub 
 
 Log in with your Docker credentials: 
 
@@ -61,7 +65,7 @@ Push the image to your Docker Hub:
 docker push your_docker_hub_id/xaf-container-example:latest
 ```
 
-**Note**: You can pull already-built docker images from your own Docker hub. To accomplish this, change image names in the following files: `app-depl.yaml` and `docker-compose.yml` (optional). 
+**Optional**: You can pull already-built docker images from your own Docker hub. To accomplish this, change image names in the following files: `app-depl.yaml` and `docker-compose.yml`. 
 
 ### 5. (Optional) Use Docker Compose to run a multi-container application 
 
@@ -71,7 +75,7 @@ You can use [Docker Compose](https://docs.docker.com/compose/) to run a multi-co
 docker-compose up
 ```
 
-The application should be available at `http://localhost/`.
+The application is available at `http://localhost/`.
 
 ### 6. Run a terminal 
 
@@ -210,7 +214,7 @@ COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "XAFContainerExample.Blazor.Server.dll"]
 ```
 
-You can also generate such a file in Visual Studio. Right-click the **YourApp.Blazor.Server** project and select **Add | Docker Support**. Note that you need to move the created `Dockerfile` up to the root solution folder.
+You can also generate such a file in Visual Studio. Right-click the project (**YourApp.Blazor.Server**) and select **Add | Docker Support**. Note that you need to move the created `Dockerfile` up to the root solution folder.
 
 ![Docker support](/images/docker-support.png)
 
@@ -220,13 +224,13 @@ Refer to [Docker reference](https://docs.docker.com/engine/reference/builder/) f
 
 ### Run an XAF Blazor application in a Kubernetes cluster
 
-This section describes all the specifications located in the `K8S` folder. These specifications are sufficient to deploy and run an XAF Blazor application with load balancing and autoscaling.
+This section describes all the specifications stored in the `K8S` folder. These specifications are sufficient to deploy and run an XAF Blazor application with load balancing and autoscaling.
 
 #### 1. Database deployment
 
 Database deployment requires a storage. 
 
-The [PersistentVolume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) subsystem implements API that abstracts details of storage allocation from storage consumption. A **PersistentVolumeClaim** (PVC) is a request for storage. The sample below is a specification for a simple PVC ([local-pvc.yaml](/K8S/local-pvc.yaml)), sufficient for a locally-run cluster, such as [k3s](https://k3s.io/):
+The [PersistentVolume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) subsystem implements API that abstracts details of storage allocation from storage consumption. A **PersistentVolumeClaim** (PVC) is a request for storage. The sample below is a specification for a simple PVC ([local-pvc.yaml](/K8S/local-pvc.yaml)), sufficient for a locally-run cluster, such as [K3s](https://k3s.io/):
 
 ```
 apiVersion: v1
@@ -241,14 +245,14 @@ spec:
       storage: 1Gi
 ```
 
-The [mssql-app-depl.yaml](/K8S/mssql-app-depl.yaml) file contains specifications for database engine [deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#writing-a-deployment-spec). The deployment procedure accomplishes two tasks: 
+See [mssql-app-depl.yaml](/K8S/mssql-app-depl.yaml) for database engine [deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#writing-a-deployment-spec) specifications. The deployment procedure accomplishes two tasks: 
 
 - Runs Microsoft SQL Server in a container
 - Runs ClusterIP service to [expose an app](https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/) on an internal IP in the cluster. (The database server is only reachable inside the cluster.)
 
 #### 2. Application deployment
 
-The [app-depl.yaml](/K8S/app-depl.yaml) file describes application deployment parameters, including a ClusterIP service:
+See [app-depl.yaml](/K8S/app-depl.yaml) for application deployment parameters, including a ClusterIP service:
 
 ```
 apiVersion: apps/v1
@@ -287,13 +291,13 @@ The file specifies the pre-built image, additional environment variables (such a
 
 Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster. Traffic routing is controlled by rules defined on the Ingress resource. Visit the following webpage from Kubernetes documentation to learn more: [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/).  
 
-Blazor Server applications use long-living WebSocket to communicate between browser and server. This means that you need to enable [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes) to maintain the connection to a Pod during the entire application run. 
+Blazor Server applications use long-living WebSocket to communicate between browser and server. This means that you need to enable [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes) to maintain a connection to a Pod during the entire application run. 
 
-The [ingress definition](/K8S/ingress-srv.yaml) example in this repository works with Kubernetes version 1.19 and later. The cluster must run an [ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/).
+The [Ingress definition](/K8S/ingress-srv.yaml) example in this repository works with Kubernetes version 1.19+. The cluster must run an [Ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/).
 
-#### 4. Horizontal Pod Autoscaler.
+#### 4. Horizontal Pod Autoscaler
 
-The [app-hpa.yaml](/K8S/app-hpa.yaml) manifest defines a HorizontalPodAutoscaler (HPA) that adjusts the number of running pod replicas according to the specified metrics.
+The following manifest ([app-hpa.yaml](/K8S/app-hpa.yaml)) defines a HorizontalPodAutoscaler (HPA) that adjusts the number of running pod replicas according to the specified metrics.
 
 ```
 apiVersion: autoscaling/v2
@@ -343,7 +347,7 @@ services:
           - "1433:1433"
 ```
 
-The application from the first contaier can use the following connection string to access the database:
+The application from the first container can use the following connection string to access the database:
 
 ```
 Pooling=false;Data Source=db;Initial Catalog=XAFContainerExample;User Id=SA;Password=<your_strong_password>
@@ -351,24 +355,29 @@ Pooling=false;Data Source=db;Initial Catalog=XAFContainerExample;User Id=SA;Pass
 
 Refer the [Compose specification](https://docs.docker.com/compose/compose-file/) webpage for better understanding of the Compose file format.
 
-## FAQ / Troubleshooting and limitations
+## FAQ, troubleshooting, and limitations
 
-### 1. Will my own XAF Blazor app work with 100, 200, 300, or more concurrent users with the same performance and using the same hardware/software?
-We neither provide a universal calculator for web server hardware/software requirements nor it is possible to give a universal answer without testing (and without misleading people). Everything depends on the complexity of a specific application and implemented behavior, which is different for each developer, application type, environment and even tested use-case scenarios. For instance, the number of persistent classes and their fields, Controllers, Application Model customizations, whether end-users export or import large amounts of data every minute, generate complex reports or do other processor and memory intensive operations, which directly affect the web server response time. For more information, review [XAF ASP.NET WebForms or Blazor Server UI for SaaS with 1000 users](https://supportcenter.devexpress.com/ticket/details/t585727/xaf-asp-net-webforms-or-blazor-server-ui-for-saas-with-1000-users) and [XAF ASP.NET Web Forms application deployment and load testing considerations](https://supportcenter.devexpress.com/ticket/details/s36497/xaf-asp-net-web-forms-application-deployment-and-load-testing-considerations).
+### 1. Will my own XAF Blazor app work with 100, 200, 300, or more concurrent users with similar performance, provided the hardware/software are the same?
 
-Even with this horizontal scaling, we recommend that you carefully test your own and unique XAF Web apps under conditions close to your real production environment to measure the actual performance over time or based on user load. For this, you may be interested in our GitHub example - [XAF Blazor load testing on Linux and MySql using Puppeteer and GitHub Actions](https://github.com/DevExpress/xaf-blazor-app-load-testing-example).
+We can neither provide a universal calculator for web server hardware/software requirements, nor can we assume any level of performance without tests. The complexity of business model and implemented behavior are significant factors. Performance may depend on developer choices, application type, environment, and even tested use-case scenarios. A few examples of factors that affect application performance are the number of persistent classes and their fields, Controller design, Application Model customizations, availability of memory intensive operations to end-users (frequent import/export of large data amounts, or complex report generation). For more information, review [XAF ASP.NET WebForms or Blazor Server UI for SaaS with 1000 users](https://supportcenter.devexpress.com/ticket/details/t585727/xaf-asp-net-webforms-or-blazor-server-ui-for-saas-with-1000-users) and [XAF ASP.NET Web Forms application deployment and load testing considerations](https://supportcenter.devexpress.com/ticket/details/s36497/xaf-asp-net-web-forms-application-deployment-and-load-testing-considerations).
 
-### 2. Will you consult us if we experience configuration or deployment issues with Docker, Kubernetes, Windows or Linux-based servers, hosting providers, etc.?
-I am afraid we cannot assist you on this, because this question (deployment) is not specific to DevExpress (XAF Blazor), and you can do whatever Microsoft ASP.NET Core Blazor Server can handle (refer to [Microsoft Docs](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server) | [Deployment Recommendations for XAF Blazor UI](https://docs.devexpress.com/eXpressAppFramework/403362/deployment/deployment-recommendations-blazor)).
-We also we do not administer web servers, hosting environments for customers; we do not consult on various server and operating system configurations as part of our support services. For more information, please review the Prerequisites and Technical Support Scope sections at https://www.devexpress.com/products/net/application_framework/xaf-considerations-for-newcomers.xml. To troubleshoot issues, we recommend that you first make sure that this deployment scenario works for you without XAF with a pure Blazor Server app (with the same database and XPO or EF Core for data access) - XAF Blazor should work too once you get your non-XAF Blazor Server app up and running.
+In brief, every application is unique. Even with horizontal scaling, we recommend that you carefully test your XAF Web apps under conditions close to your production environment. Measure performance over time. Emulate the user load. The following GitHub example may prove useful - [XAF Blazor load testing on Linux and MySql using Puppeteer and GitHub Actions](https://github.com/DevExpress/xaf-blazor-app-load-testing-example).
+
+### 2. Can I consult DevExpress about configuration or deployment issues with Docker, Kubernetes, Windows-based or Linux-based servers, hosting providers, and other 3rd party technologies?
+
+DevExpress cannot assist you on this, because deployment is not specific to DevExpress code (XAF Blazor). You can do anything Microsoft ASP.NET Core Blazor Server can handle (refer to [Microsoft Docs](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server) | [Deployment Recommendations for XAF Blazor UI](https://docs.devexpress.com/eXpressAppFramework/403362/deployment/deployment-recommendations-blazor)).
+
+DevExpress does not assist in administering web servers or hosting environments for customers. We do not consult on various server and operating system configurations as part of our support services. For more information, please review the "Prerequisites" and "Technical Support Scope" sections at https://www.devexpress.com/products/net/application_framework/xaf-considerations-for-newcomers.xml. 
+
+If you experience issues, we recommend that you first make sure that your deployment scenario works without XAF. Try a pure Blazor Server app (with the same database and XPO or EF Core for data access). Once you resolve issues with that application, an XAF Blazor app should work as expected.
 
 ### 3. How do I avoid a "Connection Error" message in the web browser for some users when the HPA scales down replicas?
 
-This problem is caused by a Sticky Session. The browser communicates with only one particular server all the time a page is open. When a pod replica is terminated, the connection is lost. You can implement a workaround - refresh the browser if the app loses server connection. You can find an example in the following file: [_Host.cshtml](/XAFContainerExample.Blazor.Server/Pages/_Host.cshtml). 
+This problem is caused by Sticky Sessions. The browser communicates with only one particular server all the time a page is open. When a pod replica is terminated, the connection is lost. You can implement a workaround - refresh the browser if the app loses server connection. You can find an example in the following file: [_Host.cshtml](/XAFContainerExample.Blazor.Server/Pages/_Host.cshtml). 
 
-A Pod can also finish processes gracefully upon termination. You can set the [terminationGracePeriodSeconds](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#lifecycle) option (30 seconds by default) to specify a delay, in seconds, after the container receives the termination signal and before it forcibly halts the process. You may also consider [Container Lifecycle Hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/) (such as `preStop`) to manage application instance state before pod termination.
+A Pod can also finish processes gracefully upon termination. You can set the [terminationGracePeriodSeconds](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#lifecycle) option to specify a delay after the container receives the termination signal and before it forcibly halts the process. The default delay is 30 seconds. You may also consider [Container Lifecycle Hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/) (such as `preStop`) to manage application instance state before pod termination.
 
-### 4. How do I get Ingress working on K3s Kubernetes distribution (The application web page cannot be reached outside the cluster)?
+### 4. How do I get Ingress working on a K3s Kubernetes distribution? (The application web page cannot be reached outside the cluster)
 
 Check the `ingress-nginx-controller` service:
 
@@ -390,7 +399,7 @@ See if the `ingress-nginx-controller` service always displays 'pending' under **
 kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec": {"type": "LoadBalancer", "externalIPs":["your-external-ip"]}}'
 ```
 
-### 5. How do I build a Docker image for a Windows container (Docker BuildKit supports only Linux containers)?
+### 5. How do I build a Docker image for a Windows container? (Docker BuildKit supports only Linux containers)
 
 If you need to build an image for a Windows container, use the following workaround to avoid passing DevExpress NuGet source insecurely. 
 
