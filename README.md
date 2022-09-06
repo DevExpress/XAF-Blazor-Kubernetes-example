@@ -7,7 +7,7 @@ This repository contains the following useful resources:
 * a `Dockerfile` that helps you publish an app to a Linux container, and a version for a Windows container (`Dockerfile.win`)
 * *.yaml files that help you deploy an app to a Kubernetes cluster with a Microsoft SQL Server database engine container, Horizontal Pod Autoscaler, and Ingress 
 
-The following diagram illustrates the cluster architecture:
+The following diagram illustrates the cluster’s architecture:
 
 ![Cluster diagram](/images/cluster-diagram.png)
 
@@ -33,7 +33,7 @@ The following command runs a container with the image you built:
 docker run --network="host" -e CONNECTION_STRING=MSSQLConnectionString your_docker_hub_id/xaf-container-example:latest
 ```
 
-**Note**: Example in this repository requires that you pass a CONNECTION_STRING environment variable. This variable specifies the connection string name (defined in `appsetting.json`) to be used in the container.
+**Note**: The Example in this repository requires that you pass a CONNECTION_STRING environment variable. This variable specifies the connection string name (defined in appsetting.json) to be used in the container.
 
 If the application's database is live and doesn't require updates, then your XAF Blazor application is ready for use at `http://localhost/`. 
 
@@ -79,7 +79,7 @@ The application is available at `http://localhost/`.
 
 ### 6. Run a terminal 
 
-Open a terminal on the machine that runs Kubernetes. You can use any Kubernetes version: Azure Kubernetes Service (AKS), Google Kubernetes Engine (GKE), locally installed lightweight [K3s](https://k3s.io/), [minikube](https://minikube.sigs.k8s.io/docs/), or others. As this article already mentioned, we tested this example with AKS and locally-installed K3s.
+Open a terminal on the machine that runs Kubernetes. You can use any Kubernetes version: Azure Kubernetes Service (AKS), Google Kubernetes Engine (GKE), locally installed lightweight [K3s](https://k3s.io/), [minikube](https://minikube.sigs.k8s.io/docs/), or others. As mentioned above, we tested this example with AKS and locally-installed K3s.
 
 ### 7. Create a storage for the database 
 
@@ -359,7 +359,7 @@ Refer the [Compose specification](https://docs.docker.com/compose/compose-file/)
 
 ### 1. Will my own XAF Blazor app work with 100, 200, 300, or more concurrent users with similar performance, provided the hardware/software are the same?
 
-We can neither provide a universal calculator for web server hardware/software requirements, nor can we assume any level of performance without tests. The complexity of business model and implemented behavior are significant factors. Performance may depend on developer choices, application type, environment, and even tested use-case scenarios. A few examples of factors that affect application performance are the number of persistent classes and their fields, Controller design, Application Model customizations, availability of memory intensive operations to end-users (frequent import/export of large data amounts, or complex report generation). For more information, review [XAF ASP.NET WebForms or Blazor Server UI for SaaS with 1000 users](https://supportcenter.devexpress.com/ticket/details/t585727/xaf-asp-net-webforms-or-blazor-server-ui-for-saas-with-1000-users) and [XAF ASP.NET Web Forms application deployment and load testing considerations](https://supportcenter.devexpress.com/ticket/details/s36497/xaf-asp-net-web-forms-application-deployment-and-load-testing-considerations).
+We cannot provide a universal calculator for web server hardware/software requirements, nor can we comment on overall performance without tests. The complexity of your business model and implemented behaviors are significant factors in throughput/performance. Ultimately, performance will depend on development decisions, application type, environment, and even tested use-case scenarios. A few examples of factors that affect application performance are the number of persistent classes and their fields, Controller design, Application Model customizations, availability of memory intensive operations to end-users (frequent import/export of large data amounts, or complex report generation). For more information, review [XAF ASP.NET WebForms or Blazor Server UI for SaaS with 1000 users](https://supportcenter.devexpress.com/ticket/details/t585727/xaf-asp-net-webforms-or-blazor-server-ui-for-saas-with-1000-users) and [XAF ASP.NET Web Forms application deployment and load testing considerations](https://supportcenter.devexpress.com/ticket/details/s36497/xaf-asp-net-web-forms-application-deployment-and-load-testing-considerations).
 
 In brief, every application is unique. Even with horizontal scaling, we recommend that you carefully test your XAF Web apps under conditions close to your production environment. Measure performance over time. Emulate the user load. The following GitHub example may prove useful - [XAF Blazor load testing on Linux and MySql using Puppeteer and GitHub Actions](https://github.com/DevExpress/xaf-blazor-app-load-testing-example).
 
