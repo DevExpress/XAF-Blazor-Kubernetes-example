@@ -1,4 +1,4 @@
-# Deploy and scale an XAF Blazor Server app to serve hundreds of users with Azure Kubernetes Service
+# Deploy and scale an XAF Blazor Server app for serving hundreds of users with Azure Kubernetes Service
 
 Follow the instruction in this example to deploy an XAF Blazor application to a Kubernetes cluster with horizontal autoscaling. We tested the application in two types of clusters: locally-run [K3s](https://k3s.io/) and [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/services/kubernetes-service/). The maximum pod replica number (20) allowed around 300 concurrent users. An AKS cluster needs two nodes (B4ms machines: 4 Cores, 16 GB RAM) to operate with such a number of pod replicas and the same load.
 
