@@ -21,10 +21,16 @@ Visit [docker.com](https://www.docker.com/) for downloads and additional informa
 
 ### 3. Build a Docker image 
 
-Use [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) to build a Docker image. The `--secret` flag helps you safely pass a NuGet source URL:
+Put the the DevExpress NuGet source URL to environment variable:
 
 ```
-DOCKER_BUILDKIT=1 docker build -t your_docker_hub_id/xaf-container-example --secret id=dxnuget,src=<( echo your_devexpress_nuget_source_url ) .
+>export DX_NUGET=https://nuget.devexpress.com/some-nuget-token/api
+```
+
+Use [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) to build a Docker image. The `--secret` flag helps you safely pass a NuGet source URL from the variable:
+
+```
+DOCKER_BUILDKIT=1 docker build -t your_docker_hub_id/xaf-container-example --secret id=dxnuget,env=DX_NUGET .
 ```
 
 The following command runs a container with the image you built:
@@ -191,6 +197,8 @@ This solution contains a `Dockerfile` example based on [microsoft-dotnet](https:
 
 ```
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+RUN apt-get update
+RUN apt-get install -y libc6 libicu-dev libfontconfig1
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
