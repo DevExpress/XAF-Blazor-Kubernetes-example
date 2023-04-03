@@ -21,7 +21,7 @@ Visit [docker.com](https://www.docker.com/) for downloads and additional informa
 
 ### 3. Build a Docker image 
 
-Put the the DevExpress NuGet source URL to environment variable:
+Add the the DevExpress NuGet source URL to the environment variable:
 
 ```
 >export DX_NUGET=https://nuget.devexpress.com/some-nuget-token/api
