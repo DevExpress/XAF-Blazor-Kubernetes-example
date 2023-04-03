@@ -29,14 +29,23 @@ public class Startup {
         services.AddXaf(Configuration, builder => {
             builder.UseApplication<XAFContainerExampleBlazorApplication>();
             builder.Modules
+                .AddDashboards(options => {
+                    options.DashboardDataType = typeof(DevExpress.Persistent.BaseImpl.DashboardData);
+                })
+                .AddOffice()
+                .AddReports(options => {
+                    options.EnableInplaceReports = true;
+                    options.ReportDataType = typeof(DevExpress.Persistent.BaseImpl.ReportDataV2);
+                    options.ReportStoreMode = DevExpress.ExpressApp.ReportsV2.ReportStoreModes.XML;
+                })
                 .Add<XAFContainerExample.Module.XAFContainerExampleModule>()
-            	.Add<XAFContainerExampleBlazorModule>();
+                .Add<XAFContainerExampleBlazorModule>();
             builder.ObjectSpaceProviders
                 .AddXpo((serviceProvider, options) => {
                     string connectionString = null;
                     string connectionStringName = System.Environment.GetEnvironmentVariable("CONNECTION_STRING");
 
-                    if (string.IsNullOrEmpty(connectionStringName)) {
+                    if(string.IsNullOrEmpty(connectionStringName)) {
                         connectionStringName = "ConnectionString";
                     }
 
@@ -59,8 +68,7 @@ public class Startup {
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
         if(env.IsDevelopment()) {
             app.UseDeveloperExceptionPage();
-        }
-        else {
+        } else {
             app.UseExceptionHandler("/Error");
             // The default HSTS value is 30 days. To change this for production scenarios, see: https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
