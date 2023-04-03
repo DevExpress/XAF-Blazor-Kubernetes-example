@@ -20,10 +20,8 @@ using XAFContainerExample.Module.BusinessObjects;
 namespace XAFContainerExample.Module;
 
 // For more typical usage scenarios, be sure to check out https://docs.devexpress.com/eXpressAppFramework/DevExpress.ExpressApp.ModuleBase.
-public sealed class XAFContainerExampleModule : ModuleBase
-{
-    public XAFContainerExampleModule()
-    {
+public sealed class XAFContainerExampleModule : ModuleBase {
+    public XAFContainerExampleModule() {
         // 
         // XAFContainerExampleModule
         // 
@@ -33,20 +31,17 @@ public sealed class XAFContainerExampleModule : ModuleBase
         RequiredModuleTypes.Add(typeof(DevExpress.ExpressApp.Office.OfficeModule));
         RequiredModuleTypes.Add(typeof(DevExpress.ExpressApp.ReportsV2.ReportsModuleV2));
     }
-    public override IEnumerable<ModuleUpdater> GetModuleUpdaters(IObjectSpace objectSpace, Version versionFromDB)
-    {
+    public override IEnumerable<ModuleUpdater> GetModuleUpdaters(IObjectSpace objectSpace, Version versionFromDB) {
         ModuleUpdater updater = new DatabaseUpdate.Updater(objectSpace, versionFromDB);
         PredefinedReportsUpdater predefinedReportsUpdater = new PredefinedReportsUpdater(Application, objectSpace, versionFromDB);
         predefinedReportsUpdater.AddPredefinedReport<Report>("Employees Report", typeof(Employee));
         return new ModuleUpdater[] { updater, predefinedReportsUpdater };
     }
-    public override void Setup(XafApplication application)
-    {
+    public override void Setup(XafApplication application) {
         base.Setup(application);
         // Manage various aspects of the application UI and behavior at the module level.
     }
-    public override void CustomizeTypesInfo(ITypesInfo typesInfo)
-    {
+    public override void CustomizeTypesInfo(ITypesInfo typesInfo) {
         base.CustomizeTypesInfo(typesInfo);
         CalculatedPersistentAliasHelper.CustomizeTypesInfo(typesInfo);
     }

@@ -10,10 +10,8 @@ using DevExpress.ExpressApp.Core;
 
 namespace XAFContainerExample.Blazor.Server;
 
-public class Startup
-{
-    public Startup(IConfiguration configuration)
-    {
+public class Startup {
+    public Startup(IConfiguration configuration) {
         Configuration = configuration;
     }
 
@@ -21,8 +19,7 @@ public class Startup
 
     // This method gets called by the runtime. Use this method to add services to the container.
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-    public void ConfigureServices(IServiceCollection services)
-    {
+    public void ConfigureServices(IServiceCollection services) {
         services.AddSingleton(typeof(Microsoft.AspNetCore.SignalR.HubConnectionHandler<>), typeof(ProxyHubConnectionHandler<>));
 
         services.AddRazorPages();
@@ -48,7 +45,7 @@ public class Startup
                     string connectionString = null;
                     string connectionStringName = System.Environment.GetEnvironmentVariable("CONNECTION_STRING");
 
-                    if (string.IsNullOrEmpty(connectionStringName)) {
+                    if(string.IsNullOrEmpty(connectionStringName)) {
                         connectionStringName = "ConnectionString";
                     }
 
@@ -68,14 +65,10 @@ public class Startup
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-    {
-        if (env.IsDevelopment())
-        {
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+        if(env.IsDevelopment()) {
             app.UseDeveloperExceptionPage();
-        }
-        else
-        {
+        } else {
             app.UseExceptionHandler("/Error");
             // The default HSTS value is 30 days. To change this for production scenarios, see: https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
