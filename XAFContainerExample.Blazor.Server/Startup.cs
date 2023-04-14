@@ -1,4 +1,5 @@
-﻿using DevExpress.ExpressApp.ApplicationBuilder;
+﻿using DevExpress.ExpressApp.Security;
+using DevExpress.ExpressApp.ApplicationBuilder;
 using DevExpress.ExpressApp.Blazor.ApplicationBuilder;
 using DevExpress.ExpressApp.Blazor.Services;
 using DevExpress.Persistent.Base;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 using DevExpress.ExpressApp.Xpo;
 using XAFContainerExample.Blazor.Server.Services;
+using DevExpress.Persistent.BaseImpl.PermissionPolicy;
 using DevExpress.ExpressApp.Core;
 
 namespace XAFContainerExample.Blazor.Server;
@@ -29,6 +31,10 @@ public class Startup {
         services.AddXaf(Configuration, builder => {
             builder.UseApplication<XAFContainerExampleBlazorApplication>();
             builder.Modules
+                .AddConditionalAppearance()
+                .AddValidation(options => {
+                    options.AllowValidationDetailsAccess = false;
+                })
                 .AddDashboards(options => {
                     options.DashboardDataType = typeof(DevExpress.Persistent.BaseImpl.DashboardData);
                 })
@@ -41,7 +47,7 @@ public class Startup {
                 .Add<XAFContainerExample.Module.XAFContainerExampleModule>()
                 .Add<XAFContainerExampleBlazorModule>();
             builder.ObjectSpaceProviders
-                .AddXpo((serviceProvider, options) => {
+                .AddSecuredXpo((serviceProvider, options) => {
                     string connectionString = null;
                     string connectionStringName = System.Environment.GetEnvironmentVariable("CONNECTION_STRING");
 
@@ -61,6 +67,23 @@ public class Startup {
                     options.UseSharedDataStoreProvider = true;
                 })
                 .AddNonPersistent();
+            builder.Security
+                .UseIntegratedMode(options => {
+                    options.RoleType = typeof(PermissionPolicyRole);
+                    // ApplicationUser descends from PermissionPolicyUser and supports the OAuth authentication. For more information, refer to the following topic: https://docs.devexpress.com/eXpressAppFramework/402197
+                    // If your application uses PermissionPolicyUser or a custom user type, set the UserType property as follows:
+                    options.UserType = typeof(XAFContainerExample.Module.BusinessObjects.ApplicationUser);
+                    // ApplicationUserLoginInfo is only necessary for applications that use the ApplicationUser user type.
+                    // If you use PermissionPolicyUser or a custom user type, comment out the following line:
+                    options.UserLoginInfoType = typeof(XAFContainerExample.Module.BusinessObjects.ApplicationUserLoginInfo);
+                    options.UseXpoPermissionsCaching();
+                })
+                .AddPasswordAuthentication(options => {
+                    options.IsSupportChangePassword = true;
+                });
+        });
+        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options => {
+            options.LoginPath = "/LoginPage";
         });
     }
 
@@ -77,6 +100,8 @@ public class Startup {
         app.UseRequestLocalization();
         app.UseStaticFiles();
         app.UseRouting();
+        app.UseAuthentication();
+        app.UseAuthorization();
         app.UseXaf();
         app.UseEndpoints(endpoints => {
             endpoints.MapXafEndpoints();

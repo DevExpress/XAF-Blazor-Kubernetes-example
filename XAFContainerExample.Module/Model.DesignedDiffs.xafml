@@ -1,6 +1,13 @@
 ﻿<?xml version="1.0" ?>
 <Application Title="XAFContainerExample">
+  <BOModel>
+    <Class Name="DevExpress.Persistent.BaseImpl.PermissionPolicy.PermissionPolicyUser" Caption="Base User" />
+  </BOModel>
+  <Options>
+    <LayoutManagerOptions RequiredFieldMark="*" />
+  </Options>
   <NavigationItems GenerateRelatedViewVariantsGroup="True" RelatedViewVariantsGroupCaption="Views" GenerateRelatedReportsGroup="True" StartupNavigationItem="Employee_ListView"/>
+
   <Views>
   </Views>
 </Application>

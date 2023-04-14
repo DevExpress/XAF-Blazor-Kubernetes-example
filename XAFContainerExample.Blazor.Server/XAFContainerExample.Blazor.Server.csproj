@@ -17,11 +17,13 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DevExpress.Drawing.Skia" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.ExpressApp.Blazor" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.ExpressApp.CodeAnalysis" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.ExpressApp.Dashboards.Blazor" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.ExpressApp.Office.Blazor" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.ExpressApp.ReportsV2.Blazor" Version="22.2.4" />
+	<PackageReference Include="DevExpress.ExpressApp.Blazor" Version="22.2.4" />
+	<PackageReference Include="DevExpress.ExpressApp.CodeAnalysis" Version="22.2.4" />
+	<PackageReference Include="DevExpress.ExpressApp.Dashboards.Blazor" Version="22.2.4" />
+	<PackageReference Include="DevExpress.ExpressApp.Office.Blazor" Version="22.2.4" />
+	<PackageReference Include="DevExpress.ExpressApp.ReportsV2.Blazor" Version="22.2.4" />
+	<PackageReference Include="DevExpress.ExpressApp.Security.Xpo" Version="22.2.4" />
+    <PackageReference Include="DevExpress.ExpressApp.Validation.Blazor" Version="22.2.4" />
     <PackageReference Include="SkiaSharp" Version="2.88.3" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.3" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.15.1" />
