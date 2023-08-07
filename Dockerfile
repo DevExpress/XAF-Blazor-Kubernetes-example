@@ -1,6 +1,7 @@
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 RUN apt-get update
 RUN apt-get install -y libc6 libicu-dev libfontconfig1
+RUN cd /usr/lib && ln -s libgdiplus.so gdiplus.dll
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
