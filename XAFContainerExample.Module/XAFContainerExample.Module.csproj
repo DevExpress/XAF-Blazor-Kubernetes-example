@@ -14,17 +14,17 @@
     <EmbeddedResource Include="Model.DesignedDiffs.xafml" />
   </ItemGroup>
   <ItemGroup>
-	  <PackageReference Include="DevExpress.ExpressApp" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.ExpressApp.CodeAnalysis" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.ExpressApp.ConditionalAppearance" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.ExpressApp.Dashboards" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.ExpressApp.Objects" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.ExpressApp.Office" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.ExpressApp.ReportsV2" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.ExpressApp.Security.Xpo" Version="22.2.4" />
-      <PackageReference Include="DevExpress.ExpressApp.Validation" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.ExpressApp.Xpo" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.Persistent.Base" Version="22.2.4" />
-	  <PackageReference Include="DevExpress.Persistent.BaseImpl.Xpo" Version="22.2.4" />
+	  <PackageReference Include="DevExpress.ExpressApp" Version="23.2.1-*" />
+	  <PackageReference Include="DevExpress.ExpressApp.CodeAnalysis" Version="23.2.1-*" />
+	  <PackageReference Include="DevExpress.ExpressApp.ConditionalAppearance" Version="23.2.1-*" />
+	  <PackageReference Include="DevExpress.ExpressApp.Dashboards" Version="23.2.1-*" />
+	  <PackageReference Include="DevExpress.ExpressApp.Objects" Version="23.2.1-*" />
+	  <PackageReference Include="DevExpress.ExpressApp.Office" Version="23.2.1-*" />
+	  <PackageReference Include="DevExpress.ExpressApp.ReportsV2" Version="23.2.1-*" />
+	  <PackageReference Include="DevExpress.ExpressApp.Security.Xpo" Version="23.2.1-*" />
+      <PackageReference Include="DevExpress.ExpressApp.Validation" Version="23.2.1-*" />
+	  <PackageReference Include="DevExpress.ExpressApp.Xpo" Version="23.2.1-*" />
+	  <PackageReference Include="DevExpress.Persistent.Base" Version="23.2.1-*" />
+	  <PackageReference Include="DevExpress.Persistent.BaseImpl.Xpo" Version="23.2.1-*" />
   </ItemGroup>
 </Project>
