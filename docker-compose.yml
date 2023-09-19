@@ -2,6 +2,7 @@ version: "3.9"
 services:
     web:
         image: "devexpress/xaf-container-example:latest"
+        pull_policy: if_not_present
         ports:
           - "80:80"
         environment:
@@ -12,5 +13,5 @@ services:
         environment:
             SA_PASSWORD: "Qwerty1_"
             ACCEPT_EULA: "Y"
-        ports:
-          - "1433:1433"
+        expose:
+          - "1433"

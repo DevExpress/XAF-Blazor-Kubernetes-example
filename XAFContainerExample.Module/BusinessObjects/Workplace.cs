@@ -1,23 +1,13 @@
 ﻿using DevExpress.Persistent.Base;
-using DevExpress.Persistent.BaseImpl;
-using DevExpress.Xpo;
+using DevExpress.Persistent.BaseImpl.EF;
 using System.ComponentModel;
 
 namespace XAFContainerExample.Module.BusinessObjects {
     [DefaultProperty("Room")]
     public class Workplace : BaseObject {
-        public Workplace(Session session) : base(session) { }
 
-        private string room;
+        public virtual string Room { get; set; }
 
-        public string Room {
-            get => room;
-            set => SetPropertyValue(nameof(Room), ref room, value);
-        }
-        private string computerId;
-        public string ComputerId {
-            get => computerId;
-            set => SetPropertyValue(nameof(ComputerId), ref computerId, value);
-        }
+        public virtual string ComputerId { get; set; }
     }
 }
