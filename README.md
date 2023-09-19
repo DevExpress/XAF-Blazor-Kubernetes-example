@@ -334,7 +334,41 @@ This example can scale pod replicas from 1 (`minReplicas`) up to 20 (`maxReplica
 
 If you don't want to scale the app automatically and set up Kubernetes, consider **Docker Compose**. 
 
-The `docker-compose.yml` file contains definitions for two containers. The first uses the `xafcontainerexample` image described above. The second runs a Microsoft SQL Server and allows access to it from the first container.
+The the simplest example of the `docker-compose.yml` file contains definitions for two containers. The first uses the `xafcontainerexample` image described above. The second runs a Microsoft SQL Server and allows access to it from the first container. 
+
+```
+version: "3.9"
+services:
+    web:
+        image: "ostashev/xaf-container-example:latest"
+        ports:
+          - "80:80"
+        environment:
+          - CONNECTION_STRING=DockerComposeMSSQLConnectionString
+        networks:
+          - my-network
+            
+    db:
+        image: "mcr.microsoft.com/mssql/server"
+        environment:
+            SA_PASSWORD: "Qwerty1_"
+            ACCEPT_EULA: "Y"
+        networks:
+          - my-network
+networks:
+  my-network:
+    internal: true
+```
+
+Here we use the [networks](https://docs.docker.com/compose/compose-file/06-networks/#networks-top-level-element) attribute to create an isolated network between containers. The application is accessible on the 80 port. However, the SQL Server container does not expose any port. So, the database is not reachable outside the internal network.
+
+The application can use the following connection string to access the database:
+
+```
+Pooling=false;Data Source=db;Initial Catalog=XAFContainerExample;User Id=SA;Password=<your_strong_password>
+```
+
+If you want to run container with https support, update the `docker-compose.yml` file as follows:
 
 ```
 version: "3.9"
@@ -343,23 +377,30 @@ services:
         image: "devexpress/xaf-container-example:latest"
         ports:
           - "80:80"
+          - "443:443"
         environment:
-          - CONNECTION_STRING=DockerMsSqlConnectionString
+          - ASPNETCORE_ENVIRONMENT=Development
+          - ASPNETCORE_URLS=https://+:443;http://+:80
+          - ASPNETCORE_Kestrel__Certificates__Default__Password=certificate_password
+          - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+          - CONNECTION_STRING=DockerComposeMSSQLConnectionString
+        volumes:
+          - ~/.aspnet/https:/https:ro
+        networks:
+          - my-network
             
     db:
         image: "mcr.microsoft.com/mssql/server"
         environment:
             SA_PASSWORD: "Qwerty1_"
             ACCEPT_EULA: "Y"
-        ports:
-          - "1433:1433"
+        networks:
+          - my-network
+networks:
+  my-network:
+    internal: true
 ```
-
-The application from the first container can use the following connection string to access the database:
-
-```
-Pooling=false;Data Source=db;Initial Catalog=XAFContainerExample;User Id=SA;Password=<your_strong_password>
-```
+Refer the [Microsoft documentation](https://learn.microsoft.com/en-us/aspnet/core/security/docker-compose-https?view=aspnetcore-7.0#macos-or-linux) to learn more how to set up development certificates for this case.
 
 Refer the [Compose specification](https://docs.docker.com/compose/compose-file/) webpage for better understanding of the Compose file format.
 

@@ -1,16 +1,21 @@
 version: "3.9"
 services:
     web:
-        image: "devexpress/xaf-container-example:latest"
+        image: "ostashev/xaf-container-example:latest"
         ports:
           - "80:80"
         environment:
           - CONNECTION_STRING=DockerComposeMSSQLConnectionString
+        networks:
+          - my-network
             
     db:
         image: "mcr.microsoft.com/mssql/server"
         environment:
             SA_PASSWORD: "Qwerty1_"
             ACCEPT_EULA: "Y"
-        ports:
-          - "1433:1433"
+        networks:
+          - my-network
+networks:
+  my-network:
+    internal: true
