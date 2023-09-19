@@ -345,22 +345,17 @@ services:
           - "80:80"
         environment:
           - CONNECTION_STRING=DockerComposeMSSQLConnectionString
-        networks:
-          - my-network
             
     db:
         image: "mcr.microsoft.com/mssql/server"
         environment:
             SA_PASSWORD: "Qwerty1_"
             ACCEPT_EULA: "Y"
-        networks:
-          - my-network
-networks:
-  my-network:
-    internal: true
+        expose:
+          - "1433"
 ```
 
-Here we use the [networks](https://docs.docker.com/compose/compose-file/06-networks/#networks-top-level-element) attribute to create an isolated network between containers. The application is accessible on the 80 port. However, the SQL Server container does not expose any port. So, the database is not reachable outside the internal network.
+The application is accessible on the 80 port. However, we use the "expose" configuration for the SQL Server container which makes it reachable only inside the Docker network, and the database cannot be accessed outside.
 
 The application can use the following connection string to access the database:
 
@@ -387,18 +382,14 @@ services:
         volumes:
           - ~/.aspnet/https:/https:ro
         networks:
-          - my-network
             
     db:
         image: "mcr.microsoft.com/mssql/server"
         environment:
             SA_PASSWORD: "Qwerty1_"
             ACCEPT_EULA: "Y"
-        networks:
-          - my-network
-networks:
-  my-network:
-    internal: true
+        expose:
+          - "1433"
 ```
 Refer the [Microsoft documentation](https://learn.microsoft.com/en-us/aspnet/core/security/docker-compose-https?view=aspnetcore-7.0#macos-or-linux) to learn more how to set up development certificates for this case.
 

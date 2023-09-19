@@ -6,16 +6,11 @@ services:
           - "80:80"
         environment:
           - CONNECTION_STRING=DockerComposeMSSQLConnectionString
-        networks:
-          - my-network
             
     db:
         image: "mcr.microsoft.com/mssql/server"
         environment:
             SA_PASSWORD: "Qwerty1_"
             ACCEPT_EULA: "Y"
-        networks:
-          - my-network
-networks:
-  my-network:
-    internal: true
+        expose:
+          - "1433"
