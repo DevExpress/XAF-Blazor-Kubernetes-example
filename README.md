@@ -363,7 +363,7 @@ The application can use the following connection string to access the database:
 Pooling=false;Data Source=db;Initial Catalog=XAFContainerExample;User Id=SA;Password=<your_strong_password>
 ```
 
-If you want to run container with https support, update the `docker-compose.yml` file as follows:
+If you want to run container with https support, update the `docker-compose.yml` file as follows (do not forget specify your certificate password instead of "certificate_password" example placeholder):
 
 ```
 version: "3.9"
@@ -381,7 +381,6 @@ services:
           - CONNECTION_STRING=DockerComposeMSSQLConnectionString
         volumes:
           - ~/.aspnet/https:/https:ro
-        networks:
             
     db:
         image: "mcr.microsoft.com/mssql/server"
