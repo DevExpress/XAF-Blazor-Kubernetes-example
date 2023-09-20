@@ -171,7 +171,6 @@ Create TLS Secret:
 kubectl create secret tls tls-secret \
 --key ca.key \
 --cert ca.crt
-secret "tls-secret" created
 ```
 
 Apply the Ingress definition:
