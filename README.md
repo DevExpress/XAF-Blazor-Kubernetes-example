@@ -119,7 +119,7 @@ Open the [app-depl.yaml](/K8S/app-depl.yaml) file and change the `devexpress` Do
 kubectl apply -f ./K8S/app-depl.yaml
 ```
 
-**Note**: To update the database, you can use the following technique. First, find a pod with the running application:
+**Note**: To fill the database with initial data, you can use the following technique. First, find a pod with the running application:
 
 ```
 kubectl get pods
@@ -168,7 +168,7 @@ openssl req -x509 \
 Create TLS Secret:
 
 ```
-kubectl create secret tls tls-secret \
+kubectl create secret tls certificate-secret \
 --key ca.key \
 --cert ca.crt
 ```
