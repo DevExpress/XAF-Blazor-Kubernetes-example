@@ -24,6 +24,7 @@
     <PackageReference Include="DevExpress.ExpressApp.Office.Blazor" Version="23.2.1-*" />
     <PackageReference Include="DevExpress.ExpressApp.ReportsV2.Blazor" Version="23.2.1-*" />
     <PackageReference Include="DevExpress.ExpressApp.Validation.Blazor" Version="23.2.1-*" />
+    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\XAFContainerExample.Module\XAFContainerExample.Module.csproj" />
