@@ -20,14 +20,14 @@ Visit [docker.com](https://www.docker.com/) for downloads and additional informa
 ### 2. Clone this repository
 
 > **Note**
-> Remove the `app.UseHttpsRedirection();` call from the Startup.cs file if you are going to run the app behind Nginx reverse proxy (e.g. with Nginx contaier or Ingress Nginx controller)
+> Remove the `app.UseHttpsRedirection();` call from the Startup.cs file if you are going to run the app behind Nginx reverse proxy (e.g. with Nginx contaier or Ingress Nginx controller in Kubernetes cluster).
 
 ### 3. Build a Docker image 
 
-Add the the DevExpress NuGet source URL to the environment variable:
+Add the the [DevExpress NuGet source URL](https://community.devexpress.com/blogs/news/archive/2023/09/19/nuget-v3-support-and-enhanced-localization-across-winforms-wpf-asp-net-platforms-early-access-preview-v23-2.aspx) to the environment variable:
 
 ```
->export DX_NUGET=https://nuget.devexpress.com/some-nuget-token/api
+>export DX_NUGET=https://nuget.devexpress.com/{your-feed-authorization-key}/api/v3/index.json
 ```
 
 Use [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) to build a Docker image. The `--secret` flag helps you safely pass a NuGet source URL from the variable:
@@ -421,7 +421,55 @@ services:
 ```
 Refer the [Microsoft documentation](https://learn.microsoft.com/en-us/aspnet/core/security/docker-compose-https?view=aspnetcore-7.0#macos-or-linux) to learn more how to set up development certificates for this case.
 
-Also, there is another way to support HTTPS with docker compose. You can add a container with Nginx reverse proxy. Here is a blog post describing this approach for ASP.NET Core applications: [Enable SSL with ASP.NET Core using Nginx and Docker](https://blog.tonysneed.com/2019/10/13/enable-ssl-with-asp-net-core-using-nginx-and-docker/).
+Also, there is another way to support HTTPS with docker compose. You can add a container with Nginx reverse proxy. Here you can find the Dockerfile for Nginx container (`Dockerfile.Nginx`):
+
+```
+FROM nginx:latest
+
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx-selfsigned.crt /etc/ssl/certs/nginx-selfsigned.crt
+COPY nginx-selfsigned.key /etc/ssl/private/nginx-selfsigned.key
+```
+
+During the image build, we copy the Nginx configuration file `nginx.conf`, and self-signed key and certificate pair to the container. Follow this article to learn how to create self-signed certificate for testing purporses: https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-nginx-in-ubuntu-16-04. 
+
+The Nginx configuration file contains settings for listening port 443 over SSL and forwarding requests to the app server, and redirecting requests from port 80 tp port 443.
+
+The updated `docker-compose.nginx.yml` has an additional definition for the Nginx container:
+
+```
+version: "3.9"
+services:
+    app:
+        image: "ostashev/xaf-container-example:latest"
+        pull_policy: missing
+        expose:
+          - "80"
+        environment:
+          - CONNECTION_STRING=DockerComposeMSSQLConnectionString
+    db:
+        image: "mcr.microsoft.com/mssql/server"
+        environment:
+            SA_PASSWORD: "Qwerty1_"
+            ACCEPT_EULA: "Y"
+        expose:
+          - "1433"
+    nginx:
+        build:
+          dockerfile: Dockerfile.Nginx
+        depends_on:
+          - app
+        ports:
+          - "80:80"
+          - "443:443"
+```
+
+Run the containers with the command:
+```
+docker compose -f docker-compose.nginx.yml up
+```
+
+Check the app is available in the browser by the URL `https://localhost`. Browser should be redirected from `http` to `https` automatically.
 
 Additional information:
 - [Docker Compose specification](https://docs.docker.com/compose/compose-file/)

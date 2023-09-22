@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+    app:
+        image: "ostashev/xaf-container-example:latest"
+        pull_policy: missing
+        expose:
+          - "80"
+        environment:
+          - CONNECTION_STRING=DockerComposeMSSQLConnectionString
+    db:
+        image: "mcr.microsoft.com/mssql/server"
+        environment:
+            SA_PASSWORD: "Qwerty1_"
+            ACCEPT_EULA: "Y"
+        expose:
+          - "1433"
+    nginx:
+        build:
+          dockerfile: Dockerfile.Nginx
+        depends_on:
+          - app
+        ports:
+          - "80:80"
+          - "443:443"

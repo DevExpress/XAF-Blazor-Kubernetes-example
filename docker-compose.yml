@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-    web:
+    app:
         image: "devexpress/xaf-container-example:latest"
         ports:
           - "80:80"
