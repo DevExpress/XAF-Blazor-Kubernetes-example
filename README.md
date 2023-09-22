@@ -19,6 +19,9 @@ Visit [docker.com](https://www.docker.com/) for downloads and additional informa
 
 ### 2. Clone this repository
 
+> **Note**
+> Remove the `app.UseHttpsRedirection();` call from the Startup.cs file if you are going to run the app behind Nginx reverse proxy (e.g. with Nginx contaier or Ingress Nginx controller)
+
 ### 3. Build a Docker image 
 
 Add the the DevExpress NuGet source URL to the environment variable:
@@ -28,9 +31,6 @@ Add the the DevExpress NuGet source URL to the environment variable:
 ```
 
 Use [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) to build a Docker image. The `--secret` flag helps you safely pass a NuGet source URL from the variable:
-
-> **Note**
-> Remove the `app.UseHttpsRedirection();` call from the Startup.cs file if you are going to run the app behind Nginx reverse proxy (e.g. with Nginx contaier or Ingress Nginx controller)
 
 
 ```
@@ -43,7 +43,8 @@ The following command runs a container with the image you built:
 docker run --network="host" -e CONNECTION_STRING=MSSQLConnectionString your_docker_hub_id/xaf-container-example:latest
 ```
 
-**Note**: The Example in this repository requires that you pass a CONNECTION_STRING environment variable. This variable specifies the connection string name (defined in appsetting.json) to be used in the container.
+> **Note**: 
+> The Example in this repository requires that you pass a CONNECTION_STRING environment variable. This variable specifies the connection string name (defined in appsetting.json) to be used in the container.
 
 If the application's database is live and doesn't require updates, then your XAF Blazor application is ready for use at `http://localhost/`. 
 
