@@ -29,6 +29,10 @@ Add the the DevExpress NuGet source URL to the environment variable:
 
 Use [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) to build a Docker image. The `--secret` flag helps you safely pass a NuGet source URL from the variable:
 
+> **Note**
+> Remove the `app.UseHttpsRedirection();` call from the Startup.cs file if you are going to run the app behind Nginx reverse proxy (e.g. with Nginx contaier or Ingress Nginx controller)
+
+
 ```
 DOCKER_BUILDKIT=1 docker build -t your_docker_hub_id/xaf-container-example --secret id=dxnuget,env=DX_NUGET .
 ```
@@ -148,8 +152,8 @@ In this step, you will accomplish the following:
 
 Before you proceed, install Ingress NGINX Controller if you haven't done so already. For example, visit the following URL for K3s setup instructions: https://docs.rancherdesktop.io/how-to-guides/setup-NGINX-Ingress-Controller/. 
 
-:::
-This ingress definition example contains a configuration for HTTPS support. If you do not need this, just remove the `tls` section from the `ingress-srv.yaml` file and skip the creating tls secret. Otherwise, make sure you have a certificate (\*.crt) and key (\*.key) files. You can create self-signed ceritificate for testing purporses:
+> **Note**
+> This ingress definition example contains a configuration for HTTPS support. If you do not need this, just remove the `tls` section from the `ingress-srv.yaml` file and skip the creating tls secret. Otherwise, make sure you have a certificate (\*.crt) and key (\*.key) files. You can create self-signed ceritificate for testing purporses:
 
 ```
 openssl genrsa -out ca.key 2048
@@ -163,7 +167,6 @@ openssl req -x509 \
   -out ca.crt \
   -subj "/CN=yourdomain.com"
 ```
-:::
 
 Create TLS Secret:
 

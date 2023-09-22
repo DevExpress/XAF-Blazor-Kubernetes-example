@@ -118,6 +118,8 @@ public class Startup {
             // The default HSTS value is 30 days. To change this for production scenarios, see: https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
+
+        //Remove this line if you are going to run the app behind Nginx reverse proxy
         app.UseHttpsRedirection();
         app.UseRequestLocalization();
         app.UseStaticFiles();
