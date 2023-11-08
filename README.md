@@ -154,7 +154,7 @@ In this step, you will accomplish the following:
 Before you proceed, install Ingress NGINX Controller if you haven't done so already. For example, visit the following URL for K3s setup instructions: https://docs.rancherdesktop.io/how-to-guides/setup-NGINX-Ingress-Controller/. 
 
 > **Note**
-> This ingress definition example contains a configuration for HTTPS support. If you do not need this, just remove the `tls` section from the `ingress-srv.yaml` file and skip the creating tls secret. Otherwise, make sure you have a certificate (\*.crt) and key (\*.key) files. You can create self-signed ceritificate for testing purporses:
+> This example's ingress definition includes configuration for HTTPS support. If you do not need this functionality, remove the `tls` section from the _ingress-srv.yaml_ file and skip the creation of the tls secret. Otherwise, make sure you have a certificate file (_\*.crt_) and a key file (_\*.key_). For testing purposes, you can create a self-signed certificate:
 
 ```
 openssl genrsa -out ca.key 2048
