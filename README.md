@@ -44,7 +44,7 @@ docker run --network="host" -e CONNECTION_STRING=MSSQLConnectionString your_dock
 ```
 
 > **Note**: 
-> The Example in this repository requires that you pass a CONNECTION_STRING environment variable. This variable specifies the connection string name (defined in appsetting.json) to be used in the container.
+> The example in this repository requires you to pass a `CONNECTION_STRING` environment variable. This variable specifies the connection string name (defined in the _appsetting.json_ file) to be used in the container.
 
 If the application's database is live and doesn't require updates, then your XAF Blazor application is ready for use at `http://localhost/`. 
 
