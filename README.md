@@ -363,7 +363,7 @@ This example can scale pod replicas from 1 (`minReplicas`) up to 20 (`maxReplica
 
 If you don't want to scale the app automatically and set up Kubernetes, consider **Docker Compose**. 
 
-The simplest example of the `docker-compose.yml` file contains definitions for two containers. The first uses the `xafcontainerexample` image described above. The second runs a Microsoft SQL Server and allows access to it from the first container. 
+The simplest example of the `docker-compose.yml` file includes definitions for two containers. The first container relates the `xafcontainerexample` image mentioned above. The second one runs a Microsoft SQL Server and allows access to it from the first container. 
 
 ```
 version: "3.9"
