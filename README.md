@@ -468,7 +468,7 @@ services:
           - "443:443"
 ```
 
-Run the containers with the command:
+Use the following command to run containers :
 ```
 docker compose -f docker-compose.nginx.yml up
 ```
