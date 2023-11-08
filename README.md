@@ -169,7 +169,7 @@ openssl req -x509 \
   -subj "/CN=yourdomain.com"
 ```
 
-Create TLS Secret:
+Create a TLS secret:
 
 ```
 kubectl create secret tls certificate-secret \
