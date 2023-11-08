@@ -419,7 +419,7 @@ services:
         expose:
           - "1433"
 ```
-Refer the [Microsoft documentation](https://learn.microsoft.com/en-us/aspnet/core/security/docker-compose-https?view=aspnetcore-7.0#macos-or-linux) to learn more how to set up development certificates for this case.
+For more information about how to set up development certificates in this case, see the [Microsoft documentation](https://learn.microsoft.com/en-us/aspnet/core/security/docker-compose-https?view=aspnetcore-7.0#macos-or-linux).
 
 Also, there is another way to support HTTPS with docker compose. You can add a container with Nginx reverse proxy. Here you can find the Dockerfile for Nginx container (`Dockerfile.Nginx`):
 
