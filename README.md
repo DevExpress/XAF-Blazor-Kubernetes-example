@@ -384,7 +384,7 @@ services:
           - "1433"
 ```
 
-The application is accessible on the 80 port. However, we use the "expose" configuration for the SQL Server container which makes it reachable only inside the Docker network, and the database cannot be accessed outside.
+You can access the application on port 80. However, we apply the 'expose' configuration option to the SQL Server container. This option makes the server accessible only within the Docker network and inaccessible outside of it.
 
 The application can use the following connection string to access the database:
 
