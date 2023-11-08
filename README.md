@@ -20,7 +20,7 @@ Visit [docker.com](https://www.docker.com/) for downloads and additional informa
 ### 2. Clone this repository
 
 > **Note**
-> Remove the `app.UseHttpsRedirection();` call from the Startup.cs file if you are going to run the app behind Nginx reverse proxy (e.g. with Nginx contaier or Ingress Nginx controller in Kubernetes cluster).
+> Remove the `app.UseHttpsRedirection();` call from the _Startup.cs_ file if you need to run the application behind a Nginx reverse proxy (e.g. with a Nginx contaier or a Ingress Nginx controller in a Kubernetes cluster).
 
 ### 3. Build a Docker image 
 
