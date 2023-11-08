@@ -439,7 +439,7 @@ The Nginx configuration file includes settings for the following operations:
 * Forward requests to the application server 
 * Redirect requests from port 80 to 443
 
-The updated `docker-compose.nginx.yml` has an additional definition for the Nginx container:
+The updated `docker-compose.nginx.yml` file has an additional definition for the Nginx container:
 
 ```
 version: "3.9"
