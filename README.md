@@ -433,7 +433,11 @@ COPY nginx-selfsigned.key /etc/ssl/private/nginx-selfsigned.key
 
 During the image build, we copy the Nginx configuration file `nginx.conf` and the self-signed key and certificate pair into the container. Follow this article to learn how to create a self-signed certificate for testing purposes: [How To Create a Self-Signed SSL Certificate for Nginx in Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-nginx-in-ubuntu-16-04).
 
-The Nginx configuration file contains settings for listening port 443 over SSL and forwarding requests to the app server, and redirecting requests from port 80 tp port 443.
+The Nginx configuration file includes settings for the following operations:
+
+* Listen to port 443 over SSL 
+* Forward requests to the application server 
+* Redirect requests from port 80 to 443
 
 The updated `docker-compose.nginx.yml` has an additional definition for the Nginx container:
 
