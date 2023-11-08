@@ -473,7 +473,7 @@ Use the following command to run containers :
 docker compose -f docker-compose.nginx.yml up
 ```
 
-Check the app is available in the browser by the URL `https://localhost`. Browser should be redirected from `http` to `https` automatically.
+Ensure that the application is available in the browser using the following URL - `https://localhost`. The browser should automatically redirect from `http` to `https`.
 
 Additional information:
 - [Docker Compose specification](https://docs.docker.com/compose/compose-file/)
