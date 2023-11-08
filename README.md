@@ -431,7 +431,7 @@ COPY nginx-selfsigned.crt /etc/ssl/certs/nginx-selfsigned.crt
 COPY nginx-selfsigned.key /etc/ssl/private/nginx-selfsigned.key
 ```
 
-During the image build, we copy the Nginx configuration file `nginx.conf`, and self-signed key and certificate pair to the container. Follow this article to learn how to create self-signed certificate for testing purporses: https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-nginx-in-ubuntu-16-04. 
+During the image build, we copy the Nginx configuration file `nginx.conf` and the self-signed key and certificate pair into the container. Follow this article to learn how to create a self-signed certificate for testing purposes: [How To Create a Self-Signed SSL Certificate for Nginx in Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-nginx-in-ubuntu-16-04).
 
 The Nginx configuration file contains settings for listening port 443 over SSL and forwarding requests to the app server, and redirecting requests from port 80 tp port 443.
 
