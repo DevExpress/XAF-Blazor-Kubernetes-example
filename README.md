@@ -20,7 +20,7 @@ Visit [docker.com](https://www.docker.com/) for downloads and additional informa
 ### 2. Clone this repository
 
 > **Note**
-> Remove the `app.UseHttpsRedirection();` call from the _Startup.cs_ file if you need to run the application behind a Nginx reverse proxy (e.g. with a Nginx contaier or a Ingress Nginx controller in a Kubernetes cluster).
+> Remove the `app.UseHttpsRedirection();` call from the _Startup.cs_ file if you need to run the application behind a Nginx reverse proxy (e.g., with an Nginx container or an Ingress Nginx controller in a Kubernetes cluster).
 
 ### 3. Build a Docker image 
 
@@ -44,7 +44,7 @@ docker run --network="host" -e CONNECTION_STRING=MSSQLConnectionString your_dock
 ```
 
 > **Note**: 
-> The example in this repository requires you to pass a `CONNECTION_STRING` environment variable. This variable specifies the connection string name (defined in the _appsetting.json_ file) to be used in the container.
+> The example in this repository requires that you pass a `CONNECTION_STRING` environment variable. This variable specifies the connection string name (defined in the _appsetting.json_ file) to be used in the container.
 
 If the application's database is live and doesn't require updates, then your XAF Blazor application is ready for use at `http://localhost/`. 
 
@@ -151,10 +151,10 @@ In this step, you will accomplish the following:
 * Configure [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) to make the application accessible from outside the cluster 
 * Set up [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes)
 
-Before you proceed, install Ingress NGINX Controller if you haven't done so already. For example, visit the following URL for K3s setup instructions: https://docs.rancherdesktop.io/how-to-guides/setup-NGINX-Ingress-Controller/. 
+Before you proceed, install the Ingress NGINX Controller if you haven't done so already. For example, visit the following URL for K3s setup instructions: https://docs.rancherdesktop.io/how-to-guides/setup-NGINX-Ingress-Controller/. 
 
 > **Note**
-> This example's ingress definition includes configuration for HTTPS support. If you do not need this functionality, remove the `tls` section from the _ingress-srv.yaml_ file and skip the creation of the tls secret. Otherwise, make sure you have a certificate file (_\*.crt_) and a key file (_\*.key_). For testing purposes, you can create a self-signed certificate:
+> This example's ingress definition includes configuration for HTTPS support. If you do not need this functionality, remove the `tls` section from the _ingress-srv.yaml_ file and skip the creation of the tls secret. Otherwise, make sure you have a certificate file (_\*.crt_) and key file (_\*.key_). For testing purposes, you can create a self-signed certificate:
 
 ```
 openssl genrsa -out ca.key 2048
@@ -363,7 +363,7 @@ This example can scale pod replicas from 1 (`minReplicas`) up to 20 (`maxReplica
 
 If you don't want to scale the app automatically and set up Kubernetes, consider **Docker Compose**. 
 
-The simplest example of the `docker-compose.yml` file includes definitions for two containers. The first container relates the `xafcontainerexample` image mentioned above. The second one runs a Microsoft SQL Server and allows access to it from the first container. 
+The simplest example of the `docker-compose.yml` file includes definitions for two containers. The first container relates to the `xafcontainerexample` image mentioned above. The second one runs a Microsoft SQL Server and allows access to it from the first container. 
 
 ```
 version: "3.9"
@@ -384,7 +384,7 @@ services:
           - "1433"
 ```
 
-You can access the application on port 80. However, we apply the 'expose' configuration option to the SQL Server container. This option makes the server accessible only within the Docker network and inaccessible outside of it.
+You can access the application on port 80. However, we apply the 'expose' configuration option to the SQL Server container. This option makes the server accessible only within the Docker network.
 
 The application can use the following connection string to access the database:
 
@@ -421,7 +421,7 @@ services:
 ```
 For more information about how to set up development certificates in this case, see the [Microsoft documentation](https://learn.microsoft.com/en-us/aspnet/core/security/docker-compose-https?view=aspnetcore-7.0#macos-or-linux).
 
-There is also another way to support HTTPS with Docker Compose. You can add a container with the Nginx reverse proxy. Here is the Dockerfile for Nginx container (`Dockerfile.Nginx`):
+There is also another way to support HTTPS with Docker Compose. You can add a container with the Nginx reverse proxy - the Dockerfile for Nginx container is available here (`Dockerfile.Nginx`):
 
 ```
 FROM nginx:latest
@@ -473,7 +473,7 @@ Use the following command to run containers :
 docker compose -f docker-compose.nginx.yml up
 ```
 
-Ensure that the application is available in the browser using the following URL - `https://localhost`. The browser should automatically redirect from `http` to `https`.
+Use the following URL to ensure the application is available in the browser: `https://localhost`. The browser should automatically redirect from `http` to `https`.
 
 Additional information:
 - [Docker Compose specification](https://docs.docker.com/compose/compose-file/)
