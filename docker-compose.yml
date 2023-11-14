@@ -1,16 +1,23 @@
 version: "3.9"
 services:
-    web:
+    app:
         image: "devexpress/xaf-container-example:latest"
         ports:
           - "80:80"
+          - "443:443"
         environment:
+          - ASPNETCORE_ENVIRONMENT=Development
+          - ASPNETCORE_URLS=https://+:443;http://+:80
+          - ASPNETCORE_Kestrel__Certificates__Default__Password=certificate_password
+          - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
           - CONNECTION_STRING=DockerComposeMSSQLConnectionString
+        volumes:
+          - ~/.aspnet/https:/https:ro
             
     db:
         image: "mcr.microsoft.com/mssql/server"
         environment:
             SA_PASSWORD: "Qwerty1_"
             ACCEPT_EULA: "Y"
-        ports:
-          - "1433:1433"
+        expose:
+          - "1433"

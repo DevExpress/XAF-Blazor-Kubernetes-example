@@ -10,14 +10,17 @@ Relevant Documentation
 Business Model Design
 https://docs.devexpress.com/eXpressAppFramework/113461
 
+Use the Entity Framework Core Data Model
+https://docs.devexpress.com/eXpressAppFramework/402972
+
 Non-Persistent Objects
 https://docs.devexpress.com/eXpressAppFramework/116516
 
 Data Types Supported by built-in Editors
 https://docs.devexpress.com/eXpressAppFramework/113014
 
-Ways to Add a Business Class (XPO)
-https://docs.devexpress.com/eXpressAppFramework/112847
+Implement Custom Business Classes and Reference Properties (EF Core)
+https://docs.devexpress.com/eXpressAppFramework/402978
 
 Ways to Implement Business Logic
 https://docs.devexpress.com/eXpressAppFramework/113710

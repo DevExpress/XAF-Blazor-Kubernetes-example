@@ -16,6 +16,9 @@ metadata:
     nginx.ingress.kubernetes.io/session-cookie-name: "affinity"
     nginx.ingress.kubernetes.io/session-cookie-expires: "14400"
     nginx.ingress.kubernetes.io/session-cookie-max-age: "14400"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
 spec:
   ingressClassName: nginx
   rules:
@@ -28,3 +31,6 @@ spec:
             name: app-clusterip-srv
             port: 
               number: 80
+  tls:
+  - secretName: certificate-secret
+

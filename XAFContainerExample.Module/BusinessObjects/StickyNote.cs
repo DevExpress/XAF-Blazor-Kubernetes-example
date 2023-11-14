@@ -1,28 +1,11 @@
 ﻿using DevExpress.Persistent.Base;
-using DevExpress.Persistent.BaseImpl;
-using DevExpress.Xpo;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DevExpress.Persistent.BaseImpl.EF;
 
 namespace XAFContainerExample.Module.BusinessObjects {
     [DefaultClassOptions]
-    public class StickyNote : BaseObject
-    {
-        public StickyNote(Session session) : base(session) { }
+    public class StickyNote : BaseObject {
+        public virtual string Name { get; set; }
 
-        private string name;
-        public string Name {
-            get => name;
-            set => SetPropertyValue(nameof(Name), ref name, value);
-        }
-
-        private string description;
-        public string Description { 
-            get => description;
-            set => SetPropertyValue(nameof(Description), ref description, value);
-        }
+        public virtual string Description { get; set; }
     }
 }

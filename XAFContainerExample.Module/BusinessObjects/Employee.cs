@@ -1,86 +1,34 @@
 ﻿using DevExpress.Persistent.Base;
-using DevExpress.Persistent.BaseImpl;
-using DevExpress.Xpo;
+using DevExpress.Persistent.BaseImpl.EF;
+using System.ComponentModel.DataAnnotations;
 
 namespace XAFContainerExample.Module.BusinessObjects {
     [DefaultClassOptions]
     public class Employee : Person {
-        public Employee (Session session) : base (session) { }
-
-        private Employee manager;
-
         [VisibleInListViewAttribute(false)]
-        public Employee Manager {
-            get => manager;
-            set => SetPropertyValue(nameof(Manager), ref manager, value);
-        }
-        private Employee tutor;
-        [VisibleInListViewAttribute(false)]
-        public Employee Tutor {
-            get => tutor;
-            set => SetPropertyValue(nameof(Tutor), ref tutor, value);
-        }
+        public virtual Employee Manager { get; set; }
 
-        private string notes;
-        [Size(SizeAttribute.Unlimited)]
-        public string Notes { 
-            get => notes;
-            set => SetPropertyValue(nameof(Notes), ref notes, value);
-        }
+        [StringLength(4096)]
+        public virtual string Notes { get; set; }
 
-        private Degree degree;
-        public Degree Degree {
-            get => degree;
-            set => SetPropertyValue(nameof(Degree), ref degree, value);
-        }
+        public virtual Degree Degree { get; set; }
 
-        private string githubProfile;
-        public string GitHubProfile { 
-            get => githubProfile;
-            set => SetPropertyValue(nameof(GitHubProfile), ref githubProfile, value);
-        }
+        public virtual string GitHubProfile { get; set; }
 
-        private string stackoverflowProfile;
-        public string StackoverflowProfile {
-            get => stackoverflowProfile;
-            set => SetPropertyValue(nameof(StackoverflowProfile), ref stackoverflowProfile, value);
-        }
+        public virtual string StackoverflowProfile { get; set; }
 
-        private string linkedinProfile;
-        public string LinkedinProfile {
-            get => linkedinProfile;
-            set => SetPropertyValue(nameof(LinkedinProfile), ref linkedinProfile, value);
-        }
+        public virtual string LinkedinProfile { get; set; }
 
-        private Department department;
-        public Department Department {
-            get => department;
-            set => SetPropertyValue(nameof(Department), ref department, value);
-        }
-        private Position position;
-        public Position Position {
-            get => position;
-            set => SetPropertyValue(nameof(Position), ref position, value);
-        }
-        private Location location;
-        public Location Location { 
-            get => location;
-            set => SetPropertyValue(nameof(Location), ref location, value);
-        }
-        private Workplace workplace;
-        public Workplace Workplace {
-            get => workplace;
-            set => SetPropertyValue(nameof(Workplace), ref workplace, value);
-        }
-        private Level level;
-        public Level Level {
-            get => level;
-            set => SetPropertyValue(nameof(Level), ref level, value);
-        }
-        private Project currentProject;
-        public Project CurrentProject {
-            get => currentProject;
-            set => SetPropertyValue(nameof(CurrentProject), ref currentProject, value);
-        }
+        public virtual Department Department { get; set; }
+
+        public virtual Position Position { get; set; }
+
+        public virtual Location Location { get; set; }
+
+        public virtual Workplace Workplace { get; set; }
+
+        public virtual Level Level { get; set; }
+
+        public virtual Project CurrentProject { get; set; }
     }
 }

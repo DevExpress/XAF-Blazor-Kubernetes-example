@@ -19,15 +19,19 @@ Visit [docker.com](https://www.docker.com/) for downloads and additional informa
 
 ### 2. Clone this repository
 
+> **Note**
+> Remove the `app.UseHttpsRedirection();` call from the _Startup.cs_ file if you need to run the application behind a Nginx reverse proxy (e.g., with an Nginx container or an Ingress Nginx controller in a Kubernetes cluster).
+
 ### 3. Build a Docker image 
 
-Add the the DevExpress NuGet source URL to the environment variable:
+Add the the [DevExpress NuGet source URL](https://community.devexpress.com/blogs/news/archive/2023/09/19/nuget-v3-support-and-enhanced-localization-across-winforms-wpf-asp-net-platforms-early-access-preview-v23-2.aspx) to the environment variable:
 
 ```
->export DX_NUGET=https://nuget.devexpress.com/some-nuget-token/api
+>export DX_NUGET=https://nuget.devexpress.com/{your-feed-authorization-key}/api/v3/index.json
 ```
 
 Use [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) to build a Docker image. The `--secret` flag helps you safely pass a NuGet source URL from the variable:
+
 
 ```
 DOCKER_BUILDKIT=1 docker build -t your_docker_hub_id/xaf-container-example --secret id=dxnuget,env=DX_NUGET .
@@ -39,7 +43,8 @@ The following command runs a container with the image you built:
 docker run --network="host" -e CONNECTION_STRING=MSSQLConnectionString your_docker_hub_id/xaf-container-example:latest
 ```
 
-**Note**: The Example in this repository requires that you pass a CONNECTION_STRING environment variable. This variable specifies the connection string name (defined in appsetting.json) to be used in the container.
+> **Note**: 
+> The example in this repository requires that you pass a `CONNECTION_STRING` environment variable. This variable specifies the connection string name (defined in the _appsetting.json_ file) to be used in the container.
 
 If the application's database is live and doesn't require updates, then your XAF Blazor application is ready for use at `http://localhost/`. 
 
@@ -119,7 +124,7 @@ Open the [app-depl.yaml](/K8S/app-depl.yaml) file and change the `devexpress` Do
 kubectl apply -f ./K8S/app-depl.yaml
 ```
 
-**Note**: To update the database, you can use the following technique. First, find a pod with the running application:
+**Note**: To fill the database with initial data, you can use the following technique. First, find a pod with the running application:
 
 ```
 kubectl get pods
@@ -146,7 +151,31 @@ In this step, you will accomplish the following:
 * Configure [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) to make the application accessible from outside the cluster 
 * Set up [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes)
 
-Before you proceed, install Ingress NGINX Controller if you haven't done so already. For example, visit the following URL for K3s setup instructions: https://docs.rancherdesktop.io/how-to-guides/setup-NGINX-Ingress-Controller/. 
+Before you proceed, install the Ingress NGINX Controller if you haven't done so already. For example, visit the following URL for K3s setup instructions: https://docs.rancherdesktop.io/how-to-guides/setup-NGINX-Ingress-Controller/. 
+
+> **Note**
+> This example's ingress definition includes configuration for HTTPS support. If you do not need this functionality, remove the `tls` section from the _ingress-srv.yaml_ file and skip the creation of the tls secret. Otherwise, make sure you have a certificate file (_\*.crt_) and key file (_\*.key_). For testing purposes, you can create a self-signed certificate:
+
+```
+openssl genrsa -out ca.key 2048
+```
+
+```
+openssl req -x509 \
+  -new -nodes  \
+  -days 365 \
+  -key ca.key \
+  -out ca.crt \
+  -subj "/CN=yourdomain.com"
+```
+
+Create a TLS secret:
+
+```
+kubectl create secret tls certificate-secret \
+--key ca.key \
+--cert ca.crt
+```
 
 Apply the Ingress definition:
 
@@ -334,7 +363,7 @@ This example can scale pod replicas from 1 (`minReplicas`) up to 20 (`maxReplica
 
 If you don't want to scale the app automatically and set up Kubernetes, consider **Docker Compose**. 
 
-The `docker-compose.yml` file contains definitions for two containers. The first uses the `xafcontainerexample` image described above. The second runs a Microsoft SQL Server and allows access to it from the first container.
+The simplest example of the `docker-compose.yml` file includes definitions for two containers. The first container relates to the `xafcontainerexample` image mentioned above. The second one runs a Microsoft SQL Server and allows access to it from the first container. 
 
 ```
 version: "3.9"
@@ -344,24 +373,110 @@ services:
         ports:
           - "80:80"
         environment:
-          - CONNECTION_STRING=DockerMsSqlConnectionString
+          - CONNECTION_STRING=DockerComposeMSSQLConnectionString
             
     db:
         image: "mcr.microsoft.com/mssql/server"
         environment:
             SA_PASSWORD: "Qwerty1_"
             ACCEPT_EULA: "Y"
-        ports:
-          - "1433:1433"
+        expose:
+          - "1433"
 ```
 
-The application from the first container can use the following connection string to access the database:
+You can access the application on port 80. However, we apply the 'expose' configuration option to the SQL Server container. This option makes the server accessible only within the Docker network.
+
+The application can use the following connection string to access the database:
 
 ```
 Pooling=false;Data Source=db;Initial Catalog=XAFContainerExample;User Id=SA;Password=<your_strong_password>
 ```
 
-Refer the [Compose specification](https://docs.docker.com/compose/compose-file/) webpage for better understanding of the Compose file format.
+If you want to run a container with HTTPS support, update the `docker-compose.yml` file as follows (remember to specify your certificate password instead of the placeholder "certificate_password"):
+
+```
+version: "3.9"
+services:
+    web:
+        image: "devexpress/xaf-container-example:latest"
+        ports:
+          - "80:80"
+          - "443:443"
+        environment:
+          - ASPNETCORE_ENVIRONMENT=Development
+          - ASPNETCORE_URLS=https://+:443;http://+:80
+          - ASPNETCORE_Kestrel__Certificates__Default__Password=certificate_password
+          - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+          - CONNECTION_STRING=DockerComposeMSSQLConnectionString
+        volumes:
+          - ~/.aspnet/https:/https:ro
+            
+    db:
+        image: "mcr.microsoft.com/mssql/server"
+        environment:
+            SA_PASSWORD: "Qwerty1_"
+            ACCEPT_EULA: "Y"
+        expose:
+          - "1433"
+```
+For more information about how to set up development certificates in this case, see the [Microsoft documentation](https://learn.microsoft.com/en-us/aspnet/core/security/docker-compose-https?view=aspnetcore-7.0#macos-or-linux).
+
+There is also another way to support HTTPS with Docker Compose. You can add a container with the Nginx reverse proxy - the Dockerfile for Nginx container is available here (`Dockerfile.Nginx`):
+
+```
+FROM nginx:latest
+
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx-selfsigned.crt /etc/ssl/certs/nginx-selfsigned.crt
+COPY nginx-selfsigned.key /etc/ssl/private/nginx-selfsigned.key
+```
+
+During the image build, we copy the Nginx configuration file `nginx.conf` and the self-signed key and certificate pair into the container. Follow this article to learn how to create a self-signed certificate for testing purposes: [How To Create a Self-Signed SSL Certificate for Nginx in Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-nginx-in-ubuntu-16-04).
+
+The Nginx configuration file includes settings for the following operations:
+
+* Listen to port 443 over SSL 
+* Forward requests to the application server 
+* Redirect requests from port 80 to 443
+
+The updated `docker-compose.nginx.yml` file has an additional definition for the Nginx container:
+
+```
+version: "3.9"
+services:
+    app:
+        image: "ostashev/xaf-container-example:latest"
+        pull_policy: missing
+        expose:
+          - "80"
+        environment:
+          - CONNECTION_STRING=DockerComposeMSSQLConnectionString
+    db:
+        image: "mcr.microsoft.com/mssql/server"
+        environment:
+            SA_PASSWORD: "Qwerty1_"
+            ACCEPT_EULA: "Y"
+        expose:
+          - "1433"
+    nginx:
+        build:
+          dockerfile: Dockerfile.Nginx
+        depends_on:
+          - app
+        ports:
+          - "80:80"
+          - "443:443"
+```
+
+Use the following command to run containers :
+```
+docker compose -f docker-compose.nginx.yml up
+```
+
+Use the following URL to ensure the application is available in the browser: `https://localhost`. The browser should automatically redirect from `http` to `https`.
+
+Additional information:
+- [Docker Compose specification](https://docs.docker.com/compose/compose-file/)
 
 ## FAQ, troubleshooting, and limitations
 

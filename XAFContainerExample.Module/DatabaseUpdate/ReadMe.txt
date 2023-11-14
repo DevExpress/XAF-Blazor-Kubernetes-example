@@ -7,8 +7,8 @@ application version changes.
 
 Relevant Documentation
 
-Supply Initial Data (XPO)
-https://docs.devexpress.com/eXpressAppFramework/112788
+Supply Initial Data (EF Core)
+https://docs.devexpress.com/eXpressAppFramework/402985
 
 ModuleUpdater Class
 https://docs.devexpress.com/eXpressAppFramework/DevExpress.ExpressApp.Updating.ModuleUpdater
@@ -16,8 +16,8 @@ https://docs.devexpress.com/eXpressAppFramework/DevExpress.ExpressApp.Updating.M
 Application Update
 https://docs.devexpress.com/eXpressAppFramework/113239
 
-How to: Update the Database Structure after the Persistent Class or Property Was Renamed or Removed (XPO)
-https://docs.devexpress.com/eXpressAppFramework/113254
+Migrations Overview (EF Core)
+https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations
 
 Debugging, Unit and Functional Testing
 https://docs.devexpress.com/eXpressAppFramework/112572
