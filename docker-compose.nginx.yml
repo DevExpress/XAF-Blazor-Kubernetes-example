@@ -1,11 +1,12 @@
 version: "3.9"
 services:
     app:
-        image: "ostashev/xaf-container-example:latest"
+        image: "devexpress/xaf-container-example:latest"
         pull_policy: missing
         expose:
           - "80"
         environment:
+          - ASPNETCORE_URLS=http://+:80
           - CONNECTION_STRING=DockerComposeMSSQLConnectionString
     db:
         image: "mcr.microsoft.com/mssql/server"
