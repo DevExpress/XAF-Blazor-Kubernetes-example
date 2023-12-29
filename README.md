@@ -225,14 +225,14 @@ app-hpa   Deployment/app-depl   13%/50%   1         15        7          54m
 This solution contains a `Dockerfile` example based on [microsoft-dotnet](https://hub.docker.com/_/microsoft-dotnet) images.
 
 ```
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 RUN apt-get update
 RUN apt-get install -y libc6 libicu-dev libfontconfig1
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 RUN --mount=type=secret,id=dxnuget dotnet nuget add source $(cat /run/secrets/dxnuget) -n devexpress-nuget
 COPY ["XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj", "XAFContainerExample.Blazor.Server/"]
@@ -309,10 +309,11 @@ spec:
       containers:
       - name: xafcontainerexample
         image: devexpress/xaf-container-example:latest
-        imagePullPolicy: Never
         env:
           - name: CONNECTION_STRING
             value: K8sMSSQLConnectionString
+          - name: ASPNETCORE_URLS
+            value: http://+:80
         resources:
           requests:
             cpu: 400m
@@ -445,11 +446,12 @@ The updated `docker-compose.nginx.yml` file has an additional definition for the
 version: "3.9"
 services:
     app:
-        image: "ostashev/xaf-container-example:latest"
+        image: "devexpress/xaf-container-example:latest"
         pull_policy: missing
         expose:
           - "80"
         environment:
+          - ASPNETCORE_URLS=http://+:80
           - CONNECTION_STRING=DockerComposeMSSQLConnectionString
     db:
         image: "mcr.microsoft.com/mssql/server"
