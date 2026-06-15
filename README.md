@@ -24,7 +24,7 @@ Visit [docker.com](https://www.docker.com/) for downloads and additional informa
 
 ### 3. Build a Docker image 
 
-Add the the [DevExpress NuGet source URL](https://community.devexpress.com/blogs/news/archive/2023/09/19/nuget-v3-support-and-enhanced-localization-across-winforms-wpf-asp-net-platforms-early-access-preview-v23-2.aspx) to the environment variable:
+Add the [DevExpress NuGet source URL](https://community.devexpress.com/blogs/news/archive/2023/09/19/nuget-v3-support-and-enhanced-localization-across-winforms-wpf-asp-net-platforms-early-access-preview-v23-2.aspx) to the environment variable:
 
 ```
 >export DX_NUGET=https://nuget.devexpress.com/{your-feed-authorization-key}/api/v3/index.json
