@@ -20,6 +20,11 @@ spec:
             value: K8sMSSQLConnectionString
           - name: ASPNETCORE_URLS
             value: http://+:80
+          - name: DevExpress_License
+            valueFrom:
+              secretKeyRef:
+                name: devexpress-license
+                key: key
         resources:
           requests:
             cpu: 400m
