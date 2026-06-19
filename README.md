@@ -24,7 +24,7 @@ Visit [docker.com](https://www.docker.com/) for downloads and additional informa
 
 ### 3. Build a Docker image
 
-Starting with DevExpress v25.1, packages are available from [NuGet.org](https://www.nuget.org/) — no custom feed configuration is required. Add your [DevExpress License Key](https://docs.devexpress.com/GeneralInformation/405494/trial-register/set-up-your-dev-express-license-key) to the environment variable:
+Starting with DevExpress v25.1, NuGet packages are available directly from [www.nuget.org](https://www.nuget.org/), so there is no need to configure a custom feed. Just add your [DevExpress License Key](https://docs.devexpress.com/GeneralInformation/405494/trial-register/set-up-your-dev-express-license-key) to the environment variable:
 
 ```
 export DX_LICENSE={your-devexpress-license-key}
