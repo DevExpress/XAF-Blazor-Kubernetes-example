@@ -265,7 +265,7 @@ You can also generate such a file in Visual Studio. Right-click the project (**Y
 
 ![Docker support](/images/docker-support.png)
 
-DevExpress packages are available from NuGet.org (v25.1+) without authentication. Pass your [DevExpress License Key](https://docs.devexpress.com/GeneralInformation/405494/trial-register/set-up-your-dev-express-license-key) as a BuildKit secret (see [BuildKit documentation](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information)) so that the Roslyn analyzer can embed the correct license hash during compilation.
+DevExpress packages are available from NuGet.org (v25.1+) without authentication. Pass your [DevExpress License Key](https://docs.devexpress.com/GeneralInformation/405494/trial-register/set-up-your-dev-express-license-key) as a [BuildKit secret](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) to enable the Roslyn analyzer to embed the correct license hash during compilation.
 
 Refer to [Docker reference](https://docs.docker.com/engine/reference/builder/) for additional information on command syntax.
 
