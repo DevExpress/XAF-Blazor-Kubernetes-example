@@ -117,7 +117,7 @@ kubectl apply -f ./K8S/mssql-app-depl.yaml
 
 Create an application deployment with its ClusterIP Service.
 
-Store your [DevExpress License Key](https://docs.devexpress.com/GeneralInformation/405494/trial-register/set-up-your-dev-express-license-key) in a Kubernetes secret:
+Store your [DevExpress License Key](https://docs.devexpress.com/GeneralInformation/405494/trial-register/set-up-your-dev-express-license-key) as a Kubernetes secret:
 
 ```
 kubectl create secret generic devexpress-license --from-literal=key="{your-devexpress-license-key}"
