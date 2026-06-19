@@ -536,7 +536,7 @@ kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec": {"type"
 
 ### 5. How do I build a Docker image for a Windows container? (Docker BuildKit supports only Linux containers)
 
-If you need to build an image for a Windows container, use the following workaround. Docker BuildKit's `--mount=type=secret` (used in the main `Dockerfile` to pass the DevExpress License Key securely) is only supported for Linux containers. For Windows containers, build the application locally first and copy the output into the image.
+If you need to build an image for a Windows container, use the following workaround. The `--mount=type=secret` flag in Docker BuildKit (used in the main `Dockerfile` to securely pass the DevExpress licence key) is only supported for Linux containers. For Windows containers, first build the application locally and then copy the output into the image.
 
 Build the application on the local machine and put the app into an image.
 
