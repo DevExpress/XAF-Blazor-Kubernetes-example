@@ -93,7 +93,7 @@ Open a terminal on the machine that runs Kubernetes. You can use any Kubernetes 
 
 ### 7. Create a storage for the database 
 
-Apply a [Persistent Volume Claim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) definition to create a storage for the database:
+Apply a [Persistent Volume Claim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) definition to create storage for the database:
 
 ```
 kubectl apply -f ./K8S/local-pvc.yaml
