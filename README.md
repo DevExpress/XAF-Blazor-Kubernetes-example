@@ -339,7 +339,7 @@ The file specifies the pre-built image, additional environment variables (such a
 
 Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster. Traffic routing is controlled by rules defined on the Ingress resource. Visit the following webpage from Kubernetes documentation to learn more: [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/).  
 
-Blazor Server applications use long-living WebSocket to communicate between browser and server. This means that you need to enable [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes) to maintain a connection to a Pod during the entire application run. 
+Blazor Server applications use the long-living WebSocket to communicate between browser and server. This means that you need to enable [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes) to maintain a connection to a Pod during the entire application run. 
 
 The [Ingress definition](/K8S/ingress-srv.yaml) example in this repository works with Kubernetes version 1.19+. The cluster must run an [Ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/).
 
