@@ -129,7 +129,7 @@ Open the [app-depl.yaml](/K8S/app-depl.yaml) file and change the `devexpress` Do
 kubectl apply -f ./K8S/app-depl.yaml
 ```
 
-**Note**: To fill the database with initial data, you can use the following technique. First, find a pod with the running application:
+**Note**: To fill the database with initial data, you can use the following technique. First, find a pod with a running application:
 
 ```
 kubectl get pods
