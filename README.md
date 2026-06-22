@@ -188,7 +188,7 @@ Apply the Ingress definition:
 kubectl apply -f ./K8S/ingress-srv.yaml
 ```
 
-Wait for a couple of minutes and check that the application is accessible from outside the cluster:
+Wait for a couple of minutes and check to ensure the application is accessible from outside the cluster:
 
 ```
 kubectl get ingress
