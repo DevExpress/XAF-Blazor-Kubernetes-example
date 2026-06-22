@@ -123,7 +123,7 @@ Store your [DevExpress License Key](https://docs.devexpress.com/GeneralInformati
 kubectl create secret generic devexpress-license --from-literal=key="{your-devexpress-license-key}"
 ```
 
-Open the [app-depl.yaml](/K8S/app-depl.yaml) file and change the `devexpress` Docker Hub id to yours (or leave it as is to pull the image from the DevExpress repository). Apply the deployment manifest:
+Open the [app-depl.yaml](/K8S/app-depl.yaml) file and change the `devexpress` Docker Hub ID to yours (or leave it as is to pull the image from the DevExpress repository). Apply the deployment manifest:
 
 ```
 kubectl apply -f ./K8S/app-depl.yaml
