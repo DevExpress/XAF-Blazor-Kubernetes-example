@@ -22,19 +22,18 @@ Visit [docker.com](https://www.docker.com/) for downloads and additional informa
 > **Note**
 > Remove the `app.UseHttpsRedirection();` call from the _Startup.cs_ file if you need to run the application behind a Nginx reverse proxy (e.g., with an Nginx container or an Ingress Nginx controller in a Kubernetes cluster).
 
-### 3. Build a Docker image 
+### 3. Build a Docker image
 
-Add the the [DevExpress NuGet source URL](https://community.devexpress.com/blogs/news/archive/2023/09/19/nuget-v3-support-and-enhanced-localization-across-winforms-wpf-asp-net-platforms-early-access-preview-v23-2.aspx) to the environment variable:
-
-```
->export DX_NUGET=https://nuget.devexpress.com/{your-feed-authorization-key}/api/v3/index.json
-```
-
-Use [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) to build a Docker image. The `--secret` flag helps you safely pass a NuGet source URL from the variable:
-
+Starting with DevExpress v25.1, NuGet packages are available directly from [www.nuget.org](https://www.nuget.org/), so there is no need to configure a custom feed. Just add your [DevExpress License Key](https://docs.devexpress.com/GeneralInformation/405494/trial-register/set-up-your-dev-express-license-key) to the environment variable:
 
 ```
-DOCKER_BUILDKIT=1 docker build -t your_docker_hub_id/xaf-container-example --secret id=dxnuget,env=DX_NUGET .
+export DX_LICENSE={your-devexpress-license-key}
+```
+
+Use [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) to build a Docker image. The `--secret` flag helps you safely pass the license key from the variable:
+
+```
+DOCKER_BUILDKIT=1 docker build -t your_docker_hub_id/xaf-container-example --secret id=dxlicense,env=DX_LICENSE .
 ```
 
 The following command runs a container with the image you built:
@@ -94,7 +93,7 @@ Open a terminal on the machine that runs Kubernetes. You can use any Kubernetes 
 
 ### 7. Create a storage for the database 
 
-Apply a [Persistent Volume Claim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) definition to create a storage for the database:
+Apply a [Persistent Volume Claim](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) definition to create storage for the database:
 
 ```
 kubectl apply -f ./K8S/local-pvc.yaml
@@ -116,15 +115,21 @@ kubectl apply -f ./K8S/mssql-app-depl.yaml
 
 ### 9. Deploy the application
 
-Create an application deployment with its ClusterIP Service. 
+Create an application deployment with its ClusterIP Service.
 
-Open the [app-depl.yaml](/K8S/app-depl.yaml) file and change the `devexpress` Docker Hub id to yours (or leave it as is to pull the image from the DevExpress repository). Apply the deployment manifest:
+Store your [DevExpress License Key](https://docs.devexpress.com/GeneralInformation/405494/trial-register/set-up-your-dev-express-license-key) as a Kubernetes secret:
+
+```
+kubectl create secret generic devexpress-license --from-literal=key="{your-devexpress-license-key}"
+```
+
+Open the [app-depl.yaml](/K8S/app-depl.yaml) file and change the `devexpress` Docker Hub ID to yours (or leave it as is to pull the image from the DevExpress repository). Apply the deployment manifest:
 
 ```
 kubectl apply -f ./K8S/app-depl.yaml
 ```
 
-**Note**: To fill the database with initial data, you can use the following technique. First, find a pod with the running application:
+**Note**: To fill the database with initial data, you can use the following technique. First, find a pod with a running application:
 
 ```
 kubectl get pods
@@ -183,7 +188,7 @@ Apply the Ingress definition:
 kubectl apply -f ./K8S/ingress-srv.yaml
 ```
 
-Wait for a couple of minutes and check that the application is accessible from outside the cluster:
+Wait for a couple of minutes and check to ensure the application is accessible from outside the cluster:
 
 ```
 kubectl get ingress
@@ -234,16 +239,21 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-RUN --mount=type=secret,id=dxnuget dotnet nuget add source $(cat /run/secrets/dxnuget) -n devexpress-nuget
 COPY ["XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj", "XAFContainerExample.Blazor.Server/"]
 COPY ["XAFContainerExample.Module/XAFContainerExample.Module.csproj", "XAFContainerExample.Module/"]
-RUN dotnet restore "XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj"
+RUN --mount=type=secret,id=dxlicense \
+    DevExpress_License=$(cat /run/secrets/dxlicense) \
+    dotnet restore "XAFContainerExample.Blazor.Server/XAFContainerExample.Blazor.Server.csproj"
 COPY . .
 WORKDIR "/src/XAFContainerExample.Blazor.Server"
-RUN dotnet build "XAFContainerExample.Blazor.Server.csproj" -c Release -o /app/build
+RUN --mount=type=secret,id=dxlicense \
+    DevExpress_License=$(cat /run/secrets/dxlicense) \
+    dotnet build "XAFContainerExample.Blazor.Server.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "XAFContainerExample.Blazor.Server.csproj" -c Release -o /app/publish
+RUN --mount=type=secret,id=dxlicense \
+    DevExpress_License=$(cat /run/secrets/dxlicense) \
+    dotnet publish "XAFContainerExample.Blazor.Server.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
@@ -255,7 +265,7 @@ You can also generate such a file in Visual Studio. Right-click the project (**Y
 
 ![Docker support](/images/docker-support.png)
 
-To restore NuGet packages correctly, pass the DevExpress NuGet source URL as a secret (see [BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) documentation). 
+DevExpress packages are available from NuGet.org (v25.1+) without authentication. Pass your [DevExpress License Key](https://docs.devexpress.com/GeneralInformation/405494/trial-register/set-up-your-dev-express-license-key) as a [BuildKit secret](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) to enable the Roslyn analyzer to embed the correct license hash during compilation.
 
 Refer to [Docker reference](https://docs.docker.com/engine/reference/builder/) for additional information on command syntax.
 
@@ -329,7 +339,7 @@ The file specifies the pre-built image, additional environment variables (such a
 
 Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster. Traffic routing is controlled by rules defined on the Ingress resource. Visit the following webpage from Kubernetes documentation to learn more: [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/).  
 
-Blazor Server applications use long-living WebSocket to communicate between browser and server. This means that you need to enable [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes) to maintain a connection to a Pod during the entire application run. 
+Blazor Server applications use the long-living WebSocket to communicate between browser and server. This means that you need to enable [Sticky Sessions](https://docs.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/server?view=aspnetcore-6.0#kubernetes) to maintain a connection to a Pod during the entire application run. 
 
 The [Ingress definition](/K8S/ingress-srv.yaml) example in this repository works with Kubernetes version 1.19+. The cluster must run an [Ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/).
 
@@ -358,7 +368,7 @@ spec:
         averageUtilization: 50
 ```
 
-This example can scale pod replicas from 1 (`minReplicas`) up to 20 (`maxReplicas`) based on CPU utilization. Refer the [HPA documentation](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details) to learn more.
+This example can scale pod replicas from 1 (`minReplicas`) up to 20 (`maxReplicas`) based on CPU utilization. Refer to [HPA documentation](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details) to learn more.
 
 ### Use Docker Compose to run a multi-container application
 
@@ -432,7 +442,7 @@ COPY nginx-selfsigned.crt /etc/ssl/certs/nginx-selfsigned.crt
 COPY nginx-selfsigned.key /etc/ssl/private/nginx-selfsigned.key
 ```
 
-During the image build, we copy the Nginx configuration file `nginx.conf` and the self-signed key and certificate pair into the container. Follow this article to learn how to create a self-signed certificate for testing purposes: [How To Create a Self-Signed SSL Certificate for Nginx in Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-nginx-in-ubuntu-16-04).
+During image build, we copy the Nginx configuration file `nginx.conf` and the self-signed key and certificate pair into the container. Follow this article to learn how to create a self-signed certificate for testing purposes: [How To Create a Self-Signed SSL Certificate for Nginx in Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-nginx-in-ubuntu-16-04).
 
 The Nginx configuration file includes settings for the following operations:
 
@@ -486,7 +496,7 @@ Additional information:
 
 We cannot provide a universal calculator for web server hardware/software requirements, nor can we comment on overall performance without tests. The complexity of your business model and implemented behaviors are significant factors in throughput/performance. Ultimately, performance will depend on development decisions, application type, environment, and even tested use-case scenarios. A few examples of factors that affect application performance are the number of persistent classes and their fields, Controller design, Application Model customizations, availability of memory intensive operations to end-users (frequent import/export of large data amounts, or complex report generation). For more information, review [XAF ASP.NET WebForms or Blazor Server UI for SaaS with 1000 users](https://supportcenter.devexpress.com/ticket/details/t585727/xaf-asp-net-webforms-or-blazor-server-ui-for-saas-with-1000-users) and [XAF ASP.NET Web Forms application deployment and load testing considerations](https://supportcenter.devexpress.com/ticket/details/s36497/xaf-asp-net-web-forms-application-deployment-and-load-testing-considerations).
 
-In brief, every application is unique. Even with horizontal scaling, we recommend that you carefully test your XAF Web apps under conditions close to your production environment. Measure performance over time. Emulate the user load. The following GitHub example may prove useful - [XAF Blazor load testing on Linux and MySql using Puppeteer and GitHub Actions](https://github.com/DevExpress/xaf-blazor-app-load-testing-example).
+In brief, every application is unique. Even with horizontal scaling, we recommend that you carefully test your XAF Web apps under conditions close to your production environment. Measure performance over time. Emulate user load. The following GitHub example may prove useful - [XAF Blazor load testing on Linux and MySql using Puppeteer and GitHub Actions](https://github.com/DevExpress/xaf-blazor-app-load-testing-example).
 
 ### 2. Can I consult DevExpress about configuration or deployment issues with Docker, Kubernetes, Windows-based or Linux-based servers, hosting providers, and other 3rd party technologies?
 
@@ -526,7 +536,7 @@ kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec": {"type"
 
 ### 5. How do I build a Docker image for a Windows container? (Docker BuildKit supports only Linux containers)
 
-If you need to build an image for a Windows container, use the following workaround to avoid passing DevExpress NuGet source insecurely. 
+If you need to build an image for a Windows container, use the following workaround. The `--mount=type=secret` flag in Docker BuildKit (used in the main `Dockerfile` to securely pass the DevExpress licence key) is only supported for Linux containers. For Windows containers, first build the application locally and then copy the output into the image.
 
 Build the application on the local machine and put the app into an image.
 
