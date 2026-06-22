@@ -368,7 +368,7 @@ spec:
         averageUtilization: 50
 ```
 
-This example can scale pod replicas from 1 (`minReplicas`) up to 20 (`maxReplicas`) based on CPU utilization. Refer the [HPA documentation](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details) to learn more.
+This example can scale pod replicas from 1 (`minReplicas`) up to 20 (`maxReplicas`) based on CPU utilization. Refer to [HPA documentation](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#algorithm-details) to learn more.
 
 ### Use Docker Compose to run a multi-container application
 
