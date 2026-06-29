@@ -1,5 +1,9 @@
 # Deploy and scale an XAF Blazor Server app: use Azure Kubernetes Service to serve hundreds of users
 
+> XAF v26.1 includes multiple core/Blazor UI rendering optimizations designed to reduce memory usage and speed up code execution under high load. For more information, review our [What's New in v26.1 docs](https://www.devexpress.com/subscriptions/new-2026-1.xml#xaf-scalability-performance-optimizations) | [Technical FAQ](https://supportcenter.devexpress.com/ticket/details/s36497/faq-xaf-blazor-ui-v26-1-enhanced-scalability-performance-deployment-and-load-testing).
+> 
+> NOTE: XAF Blazor's high-load support is not yet “ready” in v26.1. We expect it to be ready for production use in v26.2 at the earliest. In the meantime, your feedback is appreciated on our [experimental or a early v26.1 preview](https://www.devexpress.com/aboutus/pre-release.xml). Please [create tickets in the Support Center](https://supportcenter.devexpress.com/ticket/create), if you experience any issues.
+
 Follow the instruction in this example to deploy an XAF Blazor application to a Kubernetes cluster with horizontal autoscaling. We tested the application in two types of clusters: locally-run [K3s](https://k3s.io/) and [Azure Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/services/kubernetes-service/). The maximum pod replica number (20) allowed around 300 concurrent users. An AKS cluster needs two nodes (B4ms machines: 4 Cores, 16 GB RAM) to operate with such a number of pod replicas and the same load.
 
 This repository contains the following useful resources: 
